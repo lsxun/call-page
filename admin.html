@@ -86,7 +86,7 @@
     .login-form .fi .fi-wrap .fi-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--tm);pointer-events:none;transition:fill .2s}
     .login-form .fi input{width:100%;padding:14px 14px 14px 42px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--tp);font-family:'JetBrains Mono','Noto Sans SC',monospace;font-size:14px;outline:none;transition:all .2s}
     .login-form .fi input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-    .login-form .fi input:focus+.fi-icon-wrap .fi-icon,.login-form .fi input:focus~.fi-icon{fill:var(--accent)}
+    .login-form .fi input:focus~.fi-icon{fill:var(--accent)}
     .login-form .fi input::placeholder{color:var(--tm)}
     .login-btn{width:100%;padding:15px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#16a34a);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:all .2s;letter-spacing:.1em;position:relative;overflow:hidden;box-shadow:0 4px 16px #22c55e33}
     .login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px #22c55e44}
@@ -115,120 +115,24 @@
     .mo:hover{opacity:.9}
     .mo.red{background:var(--red);color:#fff}
 
-    /* ========== 打印卡二维码 ========== */
-    .qr-print-card{
-      width:360px;
-      background:#111;
-      border-radius:20px;
-      padding:32px 28px 24px;
-      text-align:center;
-      animation:pI .35s cubic-bezier(.34,1.56,.64,1);
-      box-shadow:0 20px 60px rgba(0,0,0,.6);
-      position:relative;
-    }
-
-    /* 外框装饰 */
-    .qr-print-card::before{
-      content:'';
-      position:absolute;
-      inset:0;
-      border-radius:20px;
-      border:2px solid rgba(255,255,255,.08);
-      pointer-events:none;
-    }
-
-    /* 二维码容器 */
-    .qr-print-qr{
-      display:inline-block;
-      background:#fff;
-      border-radius:16px;
-      padding:14px;
-      position:relative;
-      margin-bottom:20px;
-    }
-
-    .qr-print-qr canvas,
-    .qr-print-qr img{
-      border-radius:8px;
-      display:block;
-    }
-
-    /* 二维码中间的汽车图标 */
-    .qr-car-icon{
-      position:absolute;
-      top:50%;
-      left:50%;
-      transform:translate(-50%,-50%);
-      width:48px;
-      height:48px;
-      background:#111;
-      border-radius:10px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 0 0 4px #fff;
-    }
-
-    .qr-car-icon svg{
-      width:28px;
-      height:28px;
-      fill:#22c55e;
-    }
-
-    /* 扫码文字 */
-    .qr-print-scan{
-      font-size:18px;
-      font-weight:600;
-      color:rgba(255,255,255,.85);
-      margin-bottom:6px;
-      letter-spacing:.1em;
-    }
-
-    .qr-print-call{
-      font-size:22px;
-      font-weight:700;
-      color:#fff;
-      margin-bottom:24px;
-      letter-spacing:.06em;
-    }
-
-    /* 红字提示 */
-    .qr-print-notice{
-      font-size:16px;
-      font-weight:700;
-      color:#ef4444;
-      letter-spacing:.12em;
-      padding:14px 0;
-      border-top:1px solid rgba(255,255,255,.08);
-      margin-bottom:20px;
-    }
-
-    /* 按钮 */
-    .qr-print-actions{
-      display:flex;
-      gap:10px;
-    }
-    .qr-print-btn{
-      flex:1;
-      padding:13px;
-      border-radius:12px;
-      font-family:'Noto Sans SC',sans-serif;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      transition:all .15s;
-      border:none;
-    }
-    .qr-print-btn.save{
-      background:#22c55e;
-      color:#fff;
-    }
+    /* ========== 二维码打印卡 ========== */
+    .qr-print-card{width:480px;background:#111;border-radius:20px;padding:32px 28px 24px;text-align:center;animation:pI .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.6);position:relative}
+    .qr-print-card::before{content:'';position:absolute;inset:0;border-radius:20px;border:2px solid rgba(255,255,255,.08);pointer-events:none}
+    .qr-print-body{display:flex;align-items:center;gap:32px;margin-bottom:24px}
+    .qr-print-left{flex-shrink:0}
+    .qr-print-qr{display:inline-block;background:#fff;border-radius:16px;padding:12px;position:relative}
+    .qr-print-qr canvas,.qr-print-qr img{border-radius:8px;display:block}
+    .qr-car-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:#111;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff}
+    .qr-car-icon svg{width:26px;height:26px;fill:#22c55e}
+    .qr-print-right{text-align:left;flex:1}
+    .qr-print-scan{font-size:20px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:12px;letter-spacing:.1em}
+    .qr-print-call{font-size:36px;font-weight:700;color:#fff;letter-spacing:.06em;line-height:1.2}
+    .qr-print-notice{font-size:16px;font-weight:700;color:#ef4444;letter-spacing:.12em;padding:14px 0;border-top:1px solid rgba(255,255,255,.08);margin-bottom:20px}
+    .qr-print-actions{display:flex;gap:10px}
+    .qr-print-btn{flex:1;padding:13px;border-radius:12px;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
+    .qr-print-btn.save{background:#22c55e;color:#fff}
     .qr-print-btn.save:hover{opacity:.85}
-    .qr-print-btn.close{
-      background:transparent;
-      border:1px solid rgba(255,255,255,.15);
-      color:rgba(255,255,255,.6);
-    }
+    .qr-print-btn.close{background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6)}
     .qr-print-btn.close:hover{border-color:rgba(255,255,255,.3);color:#fff}
 
     .loading{text-align:center;padding:40px;color:var(--tm);font-size:13px;opacity:0;animation:fU .4s .3s ease forwards}
@@ -240,7 +144,18 @@
     .toast.error{border-color:var(--red);color:var(--red);background:linear-gradient(135deg,var(--surface),#1a1313);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #ef444433}
     .toast.warn{border-color:var(--yellow);color:var(--yellow);background:linear-gradient(135deg,var(--surface),#1a1713);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #f59e0b33}
 
-    @media(max-width:480px){.fr{flex-direction:column}.btn-a{width:100%}.md{padding:24px 20px}.toast{min-width:180px;padding:16px 24px;font-size:14px}.login-card{width:100%}.login-form{padding:24px 20px}}
+    @media(max-width:520px){
+      .fr{flex-direction:column}
+      .btn-a{width:100%}
+      .md{padding:24px 20px}
+      .toast{min-width:180px;padding:16px 24px;font-size:14px}
+      .login-card{width:100%}
+      .login-form{padding:24px 20px}
+      .qr-print-card{width:calc(100vw - 40px);padding:24px 20px 20px}
+      .qr-print-body{flex-direction:column;gap:20px;align-items:center}
+      .qr-print-right{text-align:center}
+      .qr-print-call{font-size:28px}
+    }
   </style>
 </head>
 <body>
@@ -307,7 +222,7 @@
   </div>
 </div>
 
-<!-- 编辑弹窗 -->
+<!-- ========== 编辑弹窗 ========== -->
 <div class="mbg" id="editModal">
   <div class="md">
     <h3>编辑号码</h3>
@@ -320,7 +235,7 @@
   </div>
 </div>
 
-<!-- 删除弹窗 -->
+<!-- ========== 删除弹窗 ========== -->
 <div class="mbg" id="delModal">
   <div class="md">
     <h3>确认删除</h3>
@@ -335,27 +250,22 @@
 
 <!-- ========== 二维码打印卡弹窗 ========== -->
 <div class="mbg" id="qrModal">
-  <div class="qr-print-card" id="qrPrintCard">
-    <!-- 二维码区域 -->
-    <div class="qr-print-qr" id="qrWrap">
-      <div id="qrBox"></div>
-      <!-- 中间汽车图标 -->
-      <div class="qr-car-icon">
-        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+  <div class="qr-print-card">
+    <div class="qr-print-body">
+      <div class="qr-print-left">
+        <div class="qr-print-qr">
+          <div id="qrBox"></div>
+          <div class="qr-car-icon">
+            <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="qr-print-right">
+        <div class="qr-print-scan">手机扫码</div>
+        <div class="qr-print-call">呼叫车主</div>
       </div>
     </div>
-
-    <!-- 文字 -->
-    <div class="qr-print-scan">手机扫码</div>
-    <div class="qr-print-call">呼叫车主</div>
-
-    <!-- 红字提示 -->
     <div class="qr-print-notice">临时停车，敬请谅解</div>
-
-    <!-- 链接 -->
-    <div id="qrUrl" style="font-size:10px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;word-break:break-all;margin-bottom:18px"></div>
-
-    <!-- 按钮 -->
     <div class="qr-print-actions">
       <button class="qr-print-btn save" onclick="dlQrCard()">下载图片</button>
       <button class="qr-print-btn close" onclick="closeM('qrModal')">关闭</button>
@@ -543,91 +453,78 @@ function showQr(id){
   var it=DATA.phones.find(function(x){return x.id===id});
   if(!it)return;
   var url=baseUrl()+'?id='+id;
-  $('qrUrl').textContent=url;
   var box=$('qrBox');box.innerHTML='';
   new QRCode(box,{text:url,width:220,height:220,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   $('qrModal').classList.add('show');
 }
 
-// 下载整个打印卡为图片（canvas 合成）
+// ========== 下载打印卡图片 ==========
 function dlQrCard(){
   var canvas=document.createElement('canvas');
-  var W=720,H=1000;
+  var W=960,H=520;
   canvas.width=W;canvas.height=H;
   var ctx=canvas.getContext('2d');
 
-  // 黑色背景+圆角
+  // 黑色背景
   roundRect(ctx,0,0,W,H,40,'#111111');
+
+  // 外边框
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=3;
+  roundRectStroke(ctx,2,2,W-4,H-4,38);
 
   // 二维码
   var qrCanvas=$('qrBox').querySelector('canvas');
   if(!qrCanvas){toast('二维码未加载','error');return}
 
-  // 白色二维码容器
-  var qrW=440,qrH=440,qrX=(W-qrW)/2,qrY=64;
-  roundRect(ctx,qrX,qrY,qrW,qrH,28,'#ffffff');
+  var qrW=360,qrH=360;
+  var qrX=48,qrY=(H-qrH)/2;
+
+  // 白色二维码框
+  roundRect(ctx,qrX,qrY,qrW,qrH,24,'#ffffff');
 
   // 二维码图片
-  var imgPad=28;
+  var imgPad=24;
   ctx.drawImage(qrCanvas,qrX+imgPad,qrY+imgPad,qrW-imgPad*2,qrH-imgPad*2);
 
-  // 中间汽车图标背景
-  var iconSize=80;
-  var iconX=(W-iconSize)/2,iconY=qrY+(qrH-iconSize)/2;
-  ctx.fillStyle='#111111';
-  ctx.beginPath();
-  ctx.moveTo(iconX+12,iconY);
-  ctx.lineTo(iconX+iconSize-12,iconY);
-  ctx.quadraticCurveTo(iconX+iconSize,iconY,iconX+iconSize,iconY+12);
-  ctx.lineTo(iconX+iconSize,iconY+iconSize-12);
-  ctx.quadraticCurveTo(iconX+iconSize,iconY+iconSize,iconX+iconSize-12,iconY+iconSize);
-  ctx.lineTo(iconX+12,iconY+iconSize);
-  ctx.quadraticCurveTo(iconX,iconY+iconSize,iconX,iconY+iconSize-12);
-  ctx.lineTo(iconX,iconY+12);
-  ctx.quadraticCurveTo(iconX,iconY,iconX+12,iconY);
-  ctx.fill();
-
-  // 白色描边
+  // 中间汽车图标
+  var iconSize=72;
+  var iconX=qrX+(qrW-iconSize)/2;
+  var iconY=qrY+(qrH-iconSize)/2;
+  roundRect(ctx,iconX,iconY,iconSize,iconSize,14,'#111111');
   ctx.strokeStyle='#ffffff';
-  ctx.lineWidth=6;
-  ctx.beginPath();
-  ctx.moveTo(iconX+12,iconY);
-  ctx.lineTo(iconX+iconSize-12,iconY);
-  ctx.quadraticCurveTo(iconX+iconSize,iconY,iconX+iconSize,iconY+12);
-  ctx.lineTo(iconX+iconSize,iconY+iconSize-12);
-  ctx.quadraticCurveTo(iconX+iconSize,iconY+iconSize,iconX+iconSize-12,iconY+iconSize);
-  ctx.lineTo(iconX+12,iconY+iconSize);
-  ctx.quadraticCurveTo(iconX,iconY+iconSize,iconX,iconY+iconSize-12);
-  ctx.lineTo(iconX,iconY+12);
-  ctx.quadraticCurveTo(iconX,iconY,iconX+12,iconY);
-  ctx.stroke();
+  ctx.lineWidth=5;
+  roundRectStroke(ctx,iconX,iconY,iconSize,iconSize,14);
+  drawCarIcon(ctx,iconX+iconSize/2,iconY+iconSize/2,16);
 
-  // 汽车图标 (简化绘制)
-  drawCarIcon(ctx,W/2,iconY+iconSize/2,22);
+  // 右侧文字
+  var textX=qrX+qrW+40;
+  var textCenterY=H/2;
 
-  // "手机扫码"
-  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.fillStyle='rgba(255,255,255,0.7)';
   ctx.font='600 36px "Noto Sans SC", sans-serif';
-  ctx.textAlign='center';
-  ctx.fillText('手机扫码',W/2,qrY+qrH+60);
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  ctx.fillText('手机扫码',textX,textCenterY-40);
 
-  // "呼叫车主"
   ctx.fillStyle='#ffffff';
-  ctx.font='700 44px "Noto Sans SC", sans-serif';
-  ctx.fillText('呼叫车主',W/2,qrY+qrH+120);
+  ctx.font='700 64px "Noto Sans SC", sans-serif';
+  ctx.fillText('呼叫车主',textX,textCenterY+40);
 
   // 分割线
   ctx.strokeStyle='rgba(255,255,255,0.08)';
-  ctx.lineWidth=1;
+  ctx.lineWidth=1.5;
   ctx.beginPath();
-  ctx.moveTo(60,qrY+qrH+160);
-  ctx.lineTo(W-60,qrY+qrH+160);
+  ctx.moveTo(40,H-100);
+  ctx.lineTo(W-40,H-100);
   ctx.stroke();
 
-  // 红字 "临时停车，敬请谅解"
+  // 红字
   ctx.fillStyle='#ef4444';
-  ctx.font='700 34px "Noto Sans SC", sans-serif';
-  ctx.fillText('临时停车，敬请谅解',W/2,qrY+qrH+215);
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.font='700 36px "Noto Sans SC", sans-serif';
+  ctx.fillText('临时停车，敬请谅解',W/2,H-55);
 
   // 下载
   var a=document.createElement('a');
@@ -640,10 +537,7 @@ function dlQrCard(){
 function drawCarIcon(ctx,x,y,size){
   ctx.save();
   ctx.fillStyle='#22c55e';
-  ctx.strokeStyle='#22c55e';
-  ctx.lineWidth=2;
   ctx.beginPath();
-  // 简化汽车轮廓
   var s=size;
   ctx.moveTo(x-s,y+s*0.3);
   ctx.lineTo(x-s*0.7,y-s*0.5);
@@ -654,33 +548,32 @@ function drawCarIcon(ctx,x,y,size){
   ctx.lineTo(x-s,y+s*0.5);
   ctx.closePath();
   ctx.fill();
-  // 车轮
   ctx.fillStyle='#111';
-  ctx.beginPath();
-  ctx.arc(x-s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x+s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);
-  ctx.fill();
+  ctx.beginPath();ctx.arc(x-s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 
 function roundRect(ctx,x,y,w,h,r,color){
   ctx.fillStyle=color;
   ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,x+r,y);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();ctx.fill();
 }
 
+function roundRectStroke(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();ctx.stroke();
+}
+
+// ========== 渲染列表 ==========
 function render(){
   var list=DATA?DATA.phones:[];
   $('listCnt').textContent=list.length+' 个';
@@ -703,6 +596,7 @@ function render(){
   $('phoneList').innerHTML=h;
 }
 
+// ========== 初始化 ==========
 (function init(){
   hidePage();
   if(cfg.token&&cfg.owner){$('stTag').textContent='已连接';$('stTag').className='st-tag st-ok';loadData()}
