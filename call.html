@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>拨打电话</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0a0a0f;--surface:#13131a;--border:#252530;--accent:#22c55e;--accent-glow:#22c55e33;--tp:#f0f0f4;--ts:#9a9aaa;--tm:#5a5a68;--red:#ef4444}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;font-family:'Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--tp);-webkit-font-smoothing:antialiased}
+    body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;position:relative}
+    body::before{content:'';position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);opacity:.4;pointer-events:none;animation:breathe 4s ease-in-out infinite}
+    @keyframes breathe{0%,100%{opacity:.3;transform:translateX(-50%) scale(1)}50%{opacity:.5;transform:translateX(-50%) scale(1.1)}}
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.025;pointer-events:none}
+    .ct{width:100%;max-width:400px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1}
+    .ring{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#06b6d4);padding:3px;margin-bottom:24px;opacity:0;animation:pI .5s .1s cubic-bezier(.34,1.56,.64,1) forwards}
+    .ring .in{width:100%;height:100%;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center}
+    .ring svg{width:40px;height:40px;fill:var(--accent)}
+    @keyframes pI{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    @keyframes fU{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+    @keyframes ringW{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.15);opacity:0}}
+    .lbl{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:4px;opacity:0;animation:fU .5s .2s ease forwards}
+    .cname{font-size:20px;font-weight:600;margin-bottom:8px;opacity:0;animation:fU .5s .25s ease forwards}
+    .cnum{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:500;letter-spacing:.04em;margin-bottom:40px;opacity:0;animation:fU .5s .3s ease forwards}
+    .cnum .sp{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);vertical-align:middle;margin:0 4px;animation:blink 2s ease-in-out infinite}
+    .cb{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:20px 32px;border-radius:60px;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:19px;font-weight:700;letter-spacing:.06em;text-decoration:none;border:none;cursor:pointer;position:relative;overflow:hidden;margin-bottom:16px;opacity:0;animation:fU .5s .4s ease forwards;transition:transform .15s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+    .cb:hover{transform:scale(1.03);box-shadow:0 0 50px var(--accent-glow)}
+    .cb:active{transform:scale(.96)}
+    .cb::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent 60%);pointer-events:none}
+    .cb svg{width:24px;height:24px;flex-shrink:0;position:relative;z-index:1}
+    .cb span{position:relative;z-index:1}
+    .cb.rg::before{content:'';position:absolute;inset:-6px;border-radius:66px;border:2px solid var(--accent);animation:ringW 1.2s ease-out infinite}
+    .hint{font-size:13px;color:var(--ts);text-align:center;line-height:1.7;opacity:0;animation:fU .4s .5s ease forwards}
+    .hint strong{color:var(--tp);font-weight:500}
+    .err{text-align:center;opacity:0;animation:fU .5s .2s ease forwards}
+    .err svg{width:56px;height:56px;fill:var(--tm);margin-bottom:16px;opacity:.4}
+    .err h2{font-size:18px;font-weight:600;color:var(--ts);margin-bottom:8px}
+    .err p{font-size:13px;color:var(--tm)}
+    .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .load-text{font-size:13px;color:var(--tm)}
+  </style>
+</head>
+<body>
+
+<div class="ct" id="main">
+  <div class="spinner"></div>
+  <p class="load-text">正在加载号码信息...</p>
+</div>
+
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var id = params.get('id');
+  var main = document.getElementById('main');
+
+  if(!id){
+    showError('未指定号码');
+    return;
+  }
+
+  // 从 phones.json 动态读取数据
+  var base = location.origin + location.pathname.replace('call.html','');
+  fetch(base + 'phones.json?t=' + Date.now())
+    .then(function(r){
+      if(!r.ok) throw new Error('加载失败');
+      return r.json();
+    })
+    .then(function(data){
+      var phones = data.phones || [];
+      var item = phones.find(function(p){ return p.id === id; });
+      if(!item){
+        showError('该号码已被删除');
+        return;
+      }
+      renderCall(item.phone, item.name);
+    })
+    .catch(function(e){
+      showError('加载失败，请稍后重试');
+    });
+
+  function fmt(n){
+    var d = n.replace(/\D/g,'');
+    if(d.length===11) return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7);
+    return n;
+  }
+
+  function renderCall(phone, name){
+    document.title = (name||phone)+' - 拨打电话';
+    var html =
+      '<div class="ring"><div class="in"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div></div>';
+    html += '<div class="lbl">一键拨号</div>';
+    if(name) html += '<div class="cname">'+esc(name)+'</div>';
+    html += '<div class="cnum">'+fmt(phone).replace(/ /g,'<span class="sp"></span>')+'</div>';
+    html += '<a class="cb" href="tel:'+phone+'" id="callBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><span>点击拨打电话</span></a>';
+    html += '<p class="hint">点击上方按钮跳转至<strong>手机拨号界面</strong></p>';
+    main.innerHTML = html;
+
+    document.getElementById('callBtn').addEventListener('click',function(){
+      var self=this; self.classList.add('rg');
+      setTimeout(function(){self.classList.remove('rg')},2000);
+    });
+  }
+
+  function showError(msg){
+    main.innerHTML =
+      '<div class="err"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><h2>'+msg+'</h2><p>请联系管理员重新生成二维码</p></div>';
+  }
+
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+})();
+</script>
+</body>
+</html>

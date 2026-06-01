@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>电话号码管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:#252530;
+      --accent:#22c55e;--accent-dim:#22c55e18;--accent-glow:#22c55e33;
+      --red:#ef4444;--red-dim:#ef444418;--blue:#3b82f6;--blue-dim:#3b82f618;
+      --yellow:#f59e0b;--yellow-dim:#f59e0b18;
+      --tp:#f0f0f4;--ts:#9a9aaa;--tm:#5a5a68;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--tp);-webkit-font-smoothing:antialiased;min-height:100vh}
+    body::before{content:'';position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);opacity:.3;pointer-events:none}
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.02;pointer-events:none}
+    @keyframes fU{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pI{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+    @keyframes fadeI{from{opacity:0}to{opacity:1}}
+    @keyframes slideU{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .wrap{max-width:540px;margin:0 auto;padding:20px 16px 80px;position:relative;z-index:1}
+    /* Header */
+    .hd{text-align:center;padding:24px 0 28px;opacity:0;animation:fU .5s .1s ease forwards}
+    .hd .ico{width:52px;height:52px;border-radius:14px;background:var(--accent-dim);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+    .hd .ico svg{width:26px;height:26px;fill:var(--accent)}
+    .hd h1{font-size:22px;font-weight:700;margin-bottom:4px}
+    .hd p{font-size:13px;color:var(--ts)}
+    /* Settings bar */
+    .st-bar{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:24px;opacity:0;animation:fU .4s .15s ease forwards}
+    .st-bar .st-tag{font-size:11px;color:var(--tm);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .15s}
+    .st-bar .st-tag:hover{border-color:var(--accent);color:var(--ts)}
+    .st-bar .st-ok{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    /* Form */
+    .form{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;opacity:0;animation:fU .5s .2s ease forwards}
+    .form-tl{font-size:14px;font-weight:600;color:var(--ts);letter-spacing:.05em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .form-tl svg{width:16px;height:16px;fill:var(--accent)}
+    .fr{display:flex;gap:10px;margin-bottom:12px}
+    .fr:last-child{margin-bottom:0}
+    .iw{flex:1}
+    .iw label{display:block;font-size:11px;color:var(--tm);margin-bottom:6px;letter-spacing:.05em}
+    .iw input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--tp);font-family:'JetBrains Mono','Noto Sans SC',monospace;font-size:14px;outline:none;transition:border-color .2s}
+    .iw input:focus{border-color:var(--accent)}
+    .iw input::placeholder{color:var(--tm)}
+    .btn-a{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:10px;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:transform .15s;white-space:nowrap;align-self:flex-end;-webkit-tap-highlight-color:transparent}
+    .btn-a:hover{transform:scale(1.03)}
+    .btn-a:active{transform:scale(.96)}
+    .btn-a svg{width:16px;height:16px}
+    /* List */
+    .lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;opacity:0;animation:fU .4s .3s ease forwards}
+    .lh h2{font-size:14px;font-weight:600;color:var(--ts);letter-spacing:.05em}
+    .lc{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tm);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
+    .pl{display:flex;flex-direction:column;gap:10px}
+    .pc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;transition:border-color .2s,transform .15s;opacity:0;animation:fU .4s ease forwards}
+    .pc:hover{border-color:#333;transform:translateY(-1px)}
+    .pc .ci{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pc .ci svg{width:20px;height:20px;fill:var(--accent)}
+    .pc .cinf{flex:1;min-width:0}
+    .pc .cnm{font-size:14px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pc .cnum{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ts);letter-spacing:.03em}
+    .pc .ca{display:flex;gap:6px;flex-shrink:0}
+    .bi{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .bi svg{width:16px;height:16px}
+    .bi.bq svg{fill:var(--blue)}.bi.bq:hover{background:var(--blue-dim);border-color:var(--blue)}
+    .bi.bc svg{fill:var(--accent)}.bi.bc:hover{background:var(--accent-dim);border-color:var(--accent)}
+    .bi.be svg{fill:var(--yellow)}.bi.be:hover{background:var(--yellow-dim);border-color:var(--yellow)}
+    .bi.bd svg{fill:var(--red)}.bi.bd:hover{background:var(--red-dim);border-color:var(--red)}
+    .empty{text-align:center;padding:60px 20px;opacity:0;animation:fU .5s .3s ease forwards}
+    .empty svg{width:56px;height:56px;fill:var(--tm);margin-bottom:16px;opacity:.4}
+    .empty h3{font-size:16px;font-weight:500;color:var(--ts);margin-bottom:6px}
+    .empty p{font-size:13px;color:var(--tm)}
+    /* Modal */
+    .mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .mbg.show{display:flex;animation:fadeI .2s ease}
+    .md{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;animation:pI .3s cubic-bezier(.34,1.56,.64,1)}
+    .md h3{font-size:18px;font-weight:600;margin-bottom:20px;text-align:center}
+    .md .iw{margin-bottom:14px}
+    .ma{display:flex;gap:10px;margin-top:20px}
+    .ma .mc{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+    .ma .mc:hover{border-color:var(--tm)}
+    .ma .mo{flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+    .ma .mo:hover{opacity:.9}
+    .ma .mo.red{background:var(--red);color:#fff}
+    /* QR modal */
+    .qm .qd{display:flex;justify-content:center;margin-bottom:16px}
+    .qm .qd .qb{background:#fff;border-radius:14px;padding:20px}
+    .qm .qu{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;text-align:center;margin-bottom:8px}
+    .qm .qt{font-size:12px;color:var(--tm);text-align:center;margin-bottom:16px}
+    .btn-dl{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px}
+    .btn-dl:hover{opacity:.85}
+    .btn-cl{display:block;width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+    .btn-cl:hover{border-color:var(--tm)}
+    /* Settings modal */
+    .sm .desc{font-size:13px;color:var(--ts);text-align:center;margin-bottom:20px;line-height:1.6}
+    .sm .desc a{color:var(--accent);text-decoration:none}
+    .btn-test{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px}
+    .test-result{text-align:center;font-size:13px;padding:8px;border-radius:8px;margin-bottom:10px;display:none}
+    .test-result.ok{display:block;background:var(--accent-dim);color:var(--accent)}
+    .test-result.fail{display:block;background:var(--red-dim);color:var(--red)}
+    /* Loading */
+    .loading{text-align:center;padding:40px;color:var(--tm);font-size:13px;opacity:0;animation:fU .4s .3s ease forwards}
+    .loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* Toast */
+    .toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 24px;font-size:13px;color:var(--tp);z-index:300;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4);white-space:nowrap}
+    .toast.show{display:block;animation:slideU .3s ease,fadeI .3s ease}
+    /* Footer */
+    .ft{text-align:center;padding:32px 0 0;opacity:0;animation:fU .4s .5s ease forwards}
+    .ft .badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:6px 16px;font-size:11px;color:var(--tm)}
+    .ft .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+    @media(max-width:480px){.fr{flex-direction:column}.btn-a{width:100%}.md{padding:24px 20px}}
+  </style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <!-- Header -->
+  <div class="hd">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>
+    <h1>电话号码管理</h1>
+    <p>GitHub 云端存储 · 多设备同步 · 独立二维码</p>
+  </div>
+
+  <!-- Settings bar -->
+  <div class="st-bar">
+    <span class="st-tag" id="stTag" onclick="openSettings()">⚙ 配置 GitHub</span>
+  </div>
+
+  <!-- Add form -->
+  <div class="form" id="addForm">
+    <div class="form-tl">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      添加新号码
+    </div>
+    <div class="fr">
+      <div class="iw"><label>电话号码 *</label><input type="tel" id="inpPhone" placeholder="例如 15291989408" maxlength="20"></div>
+      <div class="iw"><label>备注名称</label><input type="text" id="inpName" placeholder="例如 张先生" maxlength="20"></div>
+    </div>
+    <div class="fr">
+      <button class="btn-a" id="btnAdd" onclick="addPhone()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        添加号码
+      </button>
+    </div>
+  </div>
+
+  <!-- List header -->
+  <div class="lh"><h2>已保存的号码</h2><span class="lc" id="listCnt">0 个</span></div>
+
+  <!-- Phone list -->
+  <div class="pl" id="phoneList">
+    <div class="loading"><div class="spinner"></div>加载中...</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ft">
+    <div class="badge"><span class="dot"></span>数据存储在 GitHub · phones.json</div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="mbg" id="settingsModal">
+  <div class="md sm">
+    <h3>GitHub 配置</h3>
+    <p class="desc">需要一个 <a href="https://github.com/settings/tokens" target="_blank">GitHub Personal Access Token</a><br>权限勾选 <strong>repo</strong> 即可</p>
+    <div class="iw"><label>GitHub Token *</label><input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx"></div>
+    <div class="iw"><label>仓库所属用户名 *</label><input type="text" id="cfgOwner" placeholder="例如 lsxun"></div>
+    <div class="iw"><label>仓库名 *</label><input type="text" id="cfgRepo" placeholder="例如 call-page"></div>
+    <div class="test-result" id="testResult"></div>
+    <button class="btn-test" onclick="testConn()">测试连接</button>
+    <div class="ma">
+      <button class="mc" onclick="closeM('settingsModal')">取消</button>
+      <button class="mo" onclick="saveSettings()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="mbg" id="editModal">
+  <div class="md">
+    <h3>编辑号码</h3>
+    <div class="iw"><label>电话号码</label><input type="tel" id="edPhone" maxlength="20"></div>
+    <div class="iw"><label>备注名称</label><input type="text" id="edName" maxlength="20"></div>
+    <div class="ma">
+      <button class="mc" onclick="closeM('editModal')">取消</button>
+      <button class="mo" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="mbg" id="delModal">
+  <div class="md">
+    <h3>确认删除</h3>
+    <p id="delInfo" style="text-align:center;color:var(--ts);font-size:14px;margin-bottom:4px"></p>
+    <p style="text-align:center;color:var(--tm);font-size:12px">删除后对应二维码将失效</p>
+    <div class="ma">
+      <button class="mc" onclick="closeM('delModal')">取消</button>
+      <button class="mo red" onclick="confirmDel()">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="mbg" id="qrModal">
+  <div class="md qm">
+    <h3 id="qrTitle">二维码</h3>
+    <div class="qd"><div class="qb" id="qrBox"></div></div>
+    <div class="qu" id="qrUrl"></div>
+    <p class="qt">微信 / 浏览器 / 相机 扫码即可拨号</p>
+    <button class="btn-dl" onclick="dlQr()">保存二维码图片</button>
+    <button class="btn-cl" onclick="closeM('qrModal')">关闭</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ======================== 状态 ========================
+var cfg = JSON.parse(localStorage.getItem('ghCfg') || '{}');
+var SHA = null;    // phones.json 的 SHA，用于更新
+var DATA = null;   // 缓存的电话数据
+
+// ======================== 工具 ========================
+function $(id){ return document.getElementById(id); }
+function closeM(id){ $(id).classList.remove('show'); }
+function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show')},2200); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function fmt(n){ var d=n.replace(/\D/g,''); if(d.length===11) return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7); return n; }
+function esc(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ======================== GitHub API ========================
+function apiUrl(path){
+  return 'https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/'+path;
+}
+
+// 获取文件
+async function ghGet(path){
+  var res = await fetch(apiUrl(path), {
+    headers: {'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+  });
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error('GET 失败: '+res.status);
+  var data = await res.json();
+  return { content: JSON.parse(atob(data.content)), sha: data.sha };
+}
+
+// 创建或更新文件
+async function ghPut(path, content, sha, msg){
+  var body = {
+    message: msg || 'Update phones.json',
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))))
+  };
+  if(sha) body.sha = sha;
+  var res = await fetch(apiUrl(path), {
+    method:'PUT',
+    headers: {'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body: JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('PUT 失败: '+res.status);
+  var data = await res.json();
+  return data.content.sha;
+}
+
+// ======================== 设置 ========================
+function openSettings(){
+  $('cfgToken').value = cfg.token || '';
+  $('cfgOwner').value = cfg.owner || '';
+  $('cfgRepo').value  = cfg.repo  || '';
+  $('testResult').className = 'test-result';
+  $('testResult').style.display = 'none';
+  $('settingsModal').classList.add('show');
+}
+
+function saveSettings(){
+  var token = $('cfgToken').value.trim();
+  var owner = $('cfgOwner').value.trim();
+  var repo  = $('cfgRepo').value.trim();
+  if(!token||!owner||!repo){ toast('请填写所有配置项'); return; }
+  cfg = {token:token, owner:owner, repo:repo};
+  localStorage.setItem('ghCfg', JSON.stringify(cfg));
+  $('stTag').textContent = '✓ 已配置';
+  $('stTag').classList.add('st-ok');
+  closeM('settingsModal');
+  toast('配置已保存');
+  loadData();
+}
+
+async function testConn(){
+  var token = $('cfgToken').value.trim();
+  var owner = $('cfgOwner').value.trim();
+  var repo  = $('cfgRepo').value.trim();
+  if(!token||!owner||!repo){ toast('请填写所有配置项'); return; }
+  var el = $('testResult');
+  try {
+    var res = await fetch('https://api.github.com/repos/'+owner+'/'+repo, {
+      headers: {'Authorization':'token '+token}
+    });
+    if(res.ok){
+      el.className='test-result ok'; el.textContent='✓ 连接成功，仓库可访问';
+    } else if(res.status===401){
+      el.className='test-result fail'; el.textContent='✗ Token 无效';
+    } else if(res.status===404){
+      el.className='test-result fail'; el.textContent='✗ 仓库不存在或无权限';
+    } else {
+      el.className='test-result fail'; el.textContent='✗ 错误: '+res.status;
+    }
+  } catch(e){
+    el.className='test-result fail'; el.textContent='✗ 网络错误';
+  }
+}
+
+// ======================== 数据读写 ========================
+async function loadData(){
+  if(!cfg.token||!cfg.owner||!cfg.repo){
+    $('phoneList').innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><h3>请先配置 GitHub</h3><p>点击上方「配置 GitHub」进行设置</p></div>';
+    return;
+  }
+  $('phoneList').innerHTML = '<div class="loading"><div class="spinner"></div>正在从 GitHub 加载...</div>';
+  try {
+    var result = await ghGet('phones.json');
+    if(result){
+      DATA = result.content;
+      SHA = result.sha;
+    } else {
+      DATA = {phones:[]};
+      SHA = null;
+    }
+    render();
+  } catch(e){
+    $('phoneList').innerHTML = '<div class="empty"><h3>加载失败</h3><p>'+esc(e.message)+'</p></div>';
+  }
+}
+
+async function saveData(action){
+  try {
+    SHA = await ghPut('phones.json', DATA, SHA, action);
+    render();
+    return true;
+  } catch(e){
+    toast('保存失败: '+e.message);
+    return false;
+  }
+}
+
+// ======================== CRUD ========================
+async function addPhone(){
+  if(!cfg.token){ toast('请先配置 GitHub'); openSettings(); return; }
+  var phone = $('inpPhone').value.trim();
+  var name  = $('inpName').value.trim();
+  if(!phone){
+    toast('请输入电话号码');
+    $('inpPhone').focus();
+    $('inpPhone').style.animation='shake .4s';
+    setTimeout(function(){$('inpPhone').style.animation=''},400);
+    return;
+  }
+  if(!DATA) DATA = {phones:[]};
+  DATA.phones.push({id:uid(), phone:phone, name:name, created:new Date().toISOString()});
+  var ok = await saveData('添加号码 '+fmt(phone));
+  if(ok){ $('inpPhone').value=''; $('inpName').value=''; toast('添加成功'); }
+}
+
+var edId = null;
+function openEdit(id){
+  edId = id;
+  var it = DATA.phones.find(function(x){return x.id===id;});
+  if(!it) return;
+  $('edPhone').value = it.phone;
+  $('edName').value = it.name;
+  $('editModal').classList.add('show');
+}
+async function saveEdit(){
+  var phone=$('edPhone').value.trim();
+  var name=$('edName').value.trim();
+  if(!phone){toast('电话号码不能为空');return;}
+  var it = DATA.phones.find(function(x){return x.id===edId;});
+  if(it){ it.phone=phone; it.name=name; }
+  var ok = await saveData('修改号码 '+fmt(phone));
+  if(ok){ closeM('editModal'); toast('修改成功'); }
+}
+
+var delId = null;
+function openDel(id){
+  delId = id;
+  var it = DATA.phones.find(function(x){return x.id===id;});
+  if(!it) return;
+  $('delInfo').textContent = (it.name?it.name+' - ':'')+fmt(it.phone);
+  $('delModal').classList.add('show');
+}
+async function confirmDel(){
+  var it = DATA.phones.find(function(x){return x.id===delId;});
+  DATA.phones = DATA.phones.filter(function(x){return x.id!==delId;});
+  var ok = await saveData('删除号码 '+(it?fmt(it.phone):''));
+  if(ok){ closeM('delModal'); toast('已删除'); }
+}
+
+// ======================== 二维码 ========================
+function baseUrl(){
+  return 'https://'+cfg.owner+'.github.io/'+cfg.repo+'/call.html';
+}
+
+function showQr(id){
+  var it = DATA.phones.find(function(x){return x.id===id;});
+  if(!it) return;
+  var url = baseUrl()+'?id='+id;
+  $('qrTitle').textContent = it.name || fmt(it.phone);
+  $('qrUrl').textContent = url;
+  var box = $('qrBox'); box.innerHTML='';
+  new QRCode(box,{text:url,width:200,height:200,colorDark:'#13131a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  $('qrModal').classList.add('show');
+}
+
+function dlQr(){
+  var c=$('qrBox canvas');
+  if(c){var a=document.createElement('a');a.download='qr-code.png';a.href=c.toDataURL('image/png');a.click();toast('二维码已保存');}
+  else{var i=$('qrBox img');if(i){var a=document.createElement('a');a.href=i.src;a.download='qr-code.png';a.click();}}
+}
+
+function copyLink(id){
+  var url = baseUrl()+'?id='+id;
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){toast('链接已复制');});}
+  else{var i=document.createElement('input');i.value=url;document.body.appendChild(i);i.select();document.execCommand('copy');document.body.removeChild(i);toast('链接已复制');}
+}
+
+// ======================== 渲染 ========================
+function render(){
+  var list = DATA ? DATA.phones : [];
+  $('listCnt').textContent = list.length+' 个';
+  if(!list.length){
+    $('phoneList').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><h3>还没有号码</h3><p>在上方输入电话号码添加</p></div>';
+    return;
+  }
+  var h='';
+  list.forEach(function(it,i){
+    var d=Math.min(i*.06,.4);
+    h+='<div class="pc" style="animation-delay:'+d+'s">'+
+      '<div class="ci"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>'+
+      '<div class="cinf"><div class="cnm">'+esc(it.name||'未命名')+'</div><div class="cnum">'+esc(fmt(it.phone))+'</div></div>'+
+      '<div class="ca">'+
+      '<button class="bi bq" title="二维码" onclick="showQr(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></button>'+
+      '<button class="bi bc" title="复制链接" onclick="copyLink(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg></button>'+
+      '<button class="bi be" title="编辑" onclick="openEdit(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'+
+      '<button class="bi bd" title="删除" onclick="openDel(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'+
+      '</div></div>';
+  });
+  $('phoneList').innerHTML=h;
+}
+
+// ======================== 初始化 ========================
+(function init(){
+  if(cfg.token && cfg.owner && cfg.repo){
+    $('stTag').textContent='✓ 已配置';
+    $('stTag').classList.add('st-ok');
+    loadData();
+  } else {
+    openSettings();
+    $('phoneList').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><h3>请先配置 GitHub</h3><p>点击上方「配置 GitHub」开始使用</p></div>';
+  }
+  document.getElementById('inpPhone').addEventListener('keydown',function(e){if(e.key==='Enter')addPhone();});
+})();
+</script>
+</body>
+</html>
