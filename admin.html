@@ -8,1073 +8,524 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --surface-2: #1a1a24;
-      --border: #252530;
-      --accent: #22c55e;
-      --accent-dim: #22c55e22;
-      --accent-glow: #22c55e33;
-      --red: #ef4444;
-      --red-dim: #ef444422;
-      --blue: #3b82f6;
-      --blue-dim: #3b82f622;
-      --text-primary: #f0f0f4;
-      --text-secondary: #9a9aaa;
-      --text-muted: #5a5a68;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      font-family: 'Noto Sans SC', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text-primary);
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: -30%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-      opacity: 0.3;
-      pointer-events: none;
-      animation: breathe 5s ease-in-out infinite;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      opacity: 0.02;
-      pointer-events: none;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.2; transform: translateX(-50%) scale(1); }
-      50%      { opacity: 0.4; transform: translateX(-50%) scale(1.1); }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.7); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-4px); }
-      40%, 80% { transform: translateX(4px); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(100%); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ============ 拨号页面样式 ============ */
-    #callPage {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px 20px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .call-avatar-ring {
-      width: 96px;
-      height: 96px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #06b6d4);
-      padding: 3px;
-      margin-bottom: 24px;
-      opacity: 0;
-      animation: popIn 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    .call-avatar {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .call-avatar svg { width: 40px; height: 40px; fill: var(--accent); }
-
-    .call-label {
-      font-size: 12px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      font-weight: 600;
-      margin-bottom: 4px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.2s ease forwards;
-    }
-
-    .call-name {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.25s ease forwards;
-    }
-
-    .call-number {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 30px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      color: var(--text-primary);
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.3s ease forwards;
-    }
-
-    .call-number .sep {
-      display: inline-block;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--accent);
-      vertical-align: middle;
-      margin: 0 4px;
-      animation: blink 2s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%      { opacity: 0.15; }
-    }
-
-    .call-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      width: 100%;
-      max-width: 340px;
-      padding: 20px 32px;
-      border-radius: 60px;
-      background: var(--accent);
-      color: #0a0a0a;
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 16px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.4s ease forwards;
-      transition: transform 0.15s ease, box-shadow 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .call-btn:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 50px var(--accent-glow);
-    }
-
-    .call-btn:active { transform: scale(0.96); }
-
-    .call-btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 60%);
-      pointer-events: none;
-    }
-
-    .call-btn svg { width: 24px; height: 24px; flex-shrink: 0; position: relative; z-index: 1; }
-    .call-btn .btn-text { position: relative; z-index: 1; }
-
-    .call-btn.ringing::before {
-      content: '';
-      position: absolute;
-      inset: -6px;
-      border-radius: 66px;
-      border: 2px solid var(--accent);
-      animation: ringWave 1.2s ease-out infinite;
-    }
-
-    @keyframes ringWave {
-      0%   { transform: scale(1); opacity: 0.5; }
-      100% { transform: scale(1.15); opacity: 0; }
-    }
-
-    .call-hint {
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-align: center;
-      line-height: 1.7;
-      opacity: 0;
-      animation: fadeUp 0.4s 0.5s ease forwards;
-    }
-
-    .call-hint strong { color: var(--text-primary); font-weight: 500; }
-
-    /* ============ 管理页面样式 ============ */
-    #adminPage {
-      display: none;
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 24px 16px 60px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .admin-header {
-      text-align: center;
-      padding: 20px 0 32px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.1s ease forwards;
-    }
-
-    .admin-header .logo-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: var(--accent-dim);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 14px;
-    }
-
-    .admin-header .logo-icon svg { width: 24px; height: 24px; fill: var(--accent); }
-
-    .admin-header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .admin-header p {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    /* 添加表单 */
-    .add-form {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.2s ease forwards;
-    }
-
-    .form-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      letter-spacing: 0.05em;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .form-title svg { width: 16px; height: 16px; fill: var(--accent); }
-
-    .form-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .form-row:last-child { margin-bottom: 0; }
-
-    .input-wrap {
-      flex: 1;
-      position: relative;
-    }
-
-    .input-wrap label {
-      display: block;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      letter-spacing: 0.05em;
-    }
-
-    .input-wrap input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text-primary);
-      font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .input-wrap input:focus { border-color: var(--accent); }
-
-    .input-wrap input::placeholder { color: var(--text-muted); }
-
-    .btn-add {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 24px;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #0a0a0a;
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s, opacity 0.15s;
-      white-space: nowrap;
-      align-self: flex-end;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-add:hover { transform: scale(1.03); }
-    .btn-add:active { transform: scale(0.96); }
-    .btn-add svg { width: 16px; height: 16px; }
-
-    /* 号码列表 */
-    .list-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      opacity: 0;
-      animation: fadeUp 0.4s 0.3s ease forwards;
-    }
-
-    .list-header h2 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      letter-spacing: 0.05em;
-    }
-
-    .list-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 4px 12px;
-    }
-
-    .phone-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .phone-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      transition: border-color 0.2s, transform 0.15s;
-      opacity: 0;
-      animation: fadeUp 0.4s ease forwards;
-    }
-
-    .phone-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-    }
-
-    .phone-card .card-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: var(--accent-dim);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .phone-card .card-icon svg { width: 20px; height: 20px; fill: var(--accent); }
-
-    .phone-card .card-info { flex: 1; min-width: 0; }
-
-    .phone-card .card-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .phone-card .card-number {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--text-secondary);
-      letter-spacing: 0.03em;
-    }
-
-    .phone-card .card-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .btn-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-icon svg { width: 16px; height: 16px; }
-
-    .btn-icon.btn-qr { }
-    .btn-icon.btn-qr svg { fill: var(--blue); }
-    .btn-icon.btn-qr:hover { background: var(--blue-dim); border-color: var(--blue); }
-
-    .btn-icon.btn-link svg { fill: var(--accent); }
-    .btn-icon.btn-link:hover { background: var(--accent-dim); border-color: var(--accent); }
-
-    .btn-icon.btn-del svg { fill: var(--red); }
-    .btn-icon.btn-del:hover { background: var(--red-dim); border-color: var(--red); }
-
-    .btn-icon.btn-edit svg { fill: #f59e0b; }
-    .btn-icon.btn-edit:hover { background: #f59e0b22; border-color: #f59e0b; }
-
-    /* 空状态 */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      opacity: 0;
-      animation: fadeUp 0.5s 0.3s ease forwards;
-    }
-
-    .empty-state svg { width: 56px; height: 56px; fill: var(--text-muted); margin-bottom: 16px; opacity: 0.4; }
-    .empty-state h3 { font-size: 16px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
-    .empty-state p { font-size: 13px; color: var(--text-muted); }
-
-    /* 弹窗 */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(8px);
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px 28px;
-      width: 100%;
-      max-width: 400px;
-      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .modal h3 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .modal .input-wrap { margin-bottom: 14px; }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .modal-actions .btn-cancel {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text-secondary);
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .modal-actions .btn-cancel:hover { border-color: var(--text-muted); }
-
-    .modal-actions .btn-confirm {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: var(--accent);
-      color: #0a0a0a;
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .modal-actions .btn-confirm:hover { opacity: 0.9; }
-
-    .modal-actions .btn-confirm.danger { background: var(--red); }
-
-    /* QR 弹窗 */
-    .qr-modal .qr-display {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .qr-modal .qr-display .qr-box {
-      background: #fff;
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-    .qr-modal .qr-url {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      word-break: break-all;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-
-    .qr-modal .qr-tip {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .btn-download {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: var(--blue);
-      color: #fff;
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      margin-bottom: 10px;
-    }
-
-    .btn-download:hover { opacity: 0.85; }
-
-    .btn-close {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text-secondary);
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .btn-close:hover { border-color: var(--text-muted); }
-
-    /* toast */
-    .toast {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-size: 13px;
-      color: var(--text-primary);
-      z-index: 300;
-      display: none;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      white-space: nowrap;
-    }
-
-    .toast.show {
-      display: block;
-      animation: slideUp 0.3s ease, fadeIn 0.3s ease;
-    }
-
-    /* ============ 响应式 ============ */
-    @media (max-width: 480px) {
-      .form-row { flex-direction: column; }
-      .btn-add { width: 100%; }
-      .modal { padding: 24px 20px; }
-    }
+    :root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:#252530;--accent:#22c55e;--accent-dim:#22c55e18;--accent-glow:#22c55e33;--red:#ef4444;--red-dim:#ef444418;--blue:#3b82f6;--blue-dim:#3b82f618;--yellow:#f59e0b;--yellow-dim:#f59e0b18;--tp:#f0f0f4;--ts:#9a9aaa;--tm:#5a5a68}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--tp);-webkit-font-smoothing:antialiased;min-height:100vh}
+    body::before{content:'';position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);opacity:.3;pointer-events:none}
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.02;pointer-events:none}
+    @keyframes fU{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pI{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+    @keyframes fadeI{from{opacity:0}to{opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes popToast{from{opacity:0;transform:translate(-50%,-50%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+    .wrap{max-width:540px;margin:0 auto;padding:20px 16px 80px;position:relative;z-index:1}
+    .hd{text-align:center;padding:24px 0 28px;opacity:0;animation:fU .5s .1s ease forwards}
+    .hd .ico{width:52px;height:52px;border-radius:14px;background:var(--accent-dim);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+    .hd .ico svg{width:26px;height:26px;fill:var(--accent)}
+    .hd h1{font-size:22px;font-weight:700;margin-bottom:4px}
+    .st-bar{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:24px;opacity:0;animation:fU .4s .15s ease forwards}
+    .st-tag{font-size:11px;color:var(--tm);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .15s}
+    .st-tag:hover{border-color:var(--accent);color:var(--ts)}
+    .st-ok{background:var(--accent-dim)!important;border-color:var(--accent)!important;color:var(--accent)!important}
+    .st-err{background:var(--red-dim)!important;border-color:var(--red)!important;color:var(--red)!important}
+    .form{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;opacity:0;animation:fU .5s .2s ease forwards}
+    .form-tl{font-size:14px;font-weight:600;color:var(--ts);letter-spacing:.05em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .form-tl svg{width:16px;height:16px;fill:var(--accent)}
+    .fr{display:flex;gap:10px;margin-bottom:12px}
+    .fr:last-child{margin-bottom:0}
+    .iw{flex:1}
+    .iw label{display:block;font-size:11px;color:var(--tm);margin-bottom:6px;letter-spacing:.05em}
+    .iw input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--tp);font-family:'JetBrains Mono','Noto Sans SC',monospace;font-size:14px;outline:none;transition:border-color .2s}
+    .iw input:focus{border-color:var(--accent)}
+    .iw input::placeholder{color:var(--tm)}
+    .btn-a{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:10px;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:transform .15s;white-space:nowrap;align-self:flex-end;-webkit-tap-highlight-color:transparent}
+    .btn-a:hover{transform:scale(1.03)}
+    .btn-a:active{transform:scale(.96)}
+    .btn-a svg{width:16px;height:16px}
+    .lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;opacity:0;animation:fU .4s .3s ease forwards}
+    .lh h2{font-size:14px;font-weight:600;color:var(--ts);letter-spacing:.05em}
+    .lc{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tm);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
+    .pl{display:flex;flex-direction:column;gap:10px}
+    .pc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;transition:border-color .2s,transform .15s;opacity:0;animation:fU .4s ease forwards}
+    .pc:hover{border-color:#333;transform:translateY(-1px)}
+    .pc .ci{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pc .ci svg{width:20px;height:20px;fill:var(--accent)}
+    .pc .cinf{flex:1;min-width:0}
+    .pc .cnm{font-size:14px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pc .cnum{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ts);letter-spacing:.03em}
+    .pc .ca{display:flex;gap:6px;flex-shrink:0}
+    .bi{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .bi svg{width:16px;height:16px}
+    .bi.bq svg{fill:var(--blue)}.bi.bq:hover{background:var(--blue-dim);border-color:var(--blue)}
+    .bi.be svg{fill:var(--yellow)}.bi.be:hover{background:var(--yellow-dim);border-color:var(--yellow)}
+    .bi.bd svg{fill:var(--red)}.bi.bd:hover{background:var(--red-dim);border-color:var(--red)}
+    .empty{text-align:center;padding:60px 20px;opacity:0;animation:fU .5s .3s ease forwards}
+    .empty svg{width:56px;height:56px;fill:var(--tm);margin-bottom:16px;opacity:.4}
+    .empty h3{font-size:16px;font-weight:500;color:var(--ts);margin-bottom:6px}
+    .empty p{font-size:13px;color:var(--tm)}
+    .mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .mbg.show{display:flex;animation:fadeI .2s ease}
+    .md{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;animation:pI .3s cubic-bezier(.34,1.56,.64,1)}
+    .md h3{font-size:18px;font-weight:600;margin-bottom:20px;text-align:center}
+    .md .iw{margin-bottom:14px}
+    .md .desc{font-size:13px;color:var(--ts);text-align:center;margin-bottom:20px;line-height:1.6}
+    .md .desc a{color:var(--accent);text-decoration:none}
+    .ma{display:flex;gap:10px;margin-top:20px}
+    .mc{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+    .mc:hover{border-color:var(--tm)}
+    .mo{flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+    .mo:hover{opacity:.9}
+    .mo.red{background:var(--red);color:#fff}
+    .qm .qd{display:flex;justify-content:center;margin-bottom:16px}
+    .qm .qd .qb{background:#fff;border-radius:14px;padding:20px}
+    .qm .qu{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;text-align:center;margin-bottom:8px}
+    .qm .qt{font-size:12px;color:var(--tm);text-align:center;margin-bottom:16px}
+    .btn-dl{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px}
+    .btn-dl:hover{opacity:.85}
+    .btn-cl{display:block;width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+    .btn-cl:hover{border-color:var(--tm)}
+    .btn-test{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
+    .btn-test:hover{opacity:.85}
+    .btn-test:disabled{opacity:.5;cursor:not-allowed}
+    .test-r{text-align:center;font-size:13px;padding:8px;border-radius:8px;margin-bottom:10px;display:none}
+    .test-r.ok{display:block;background:var(--accent-dim);color:var(--accent)}
+    .test-r.fail{display:block;background:var(--red-dim);color:var(--red)}
+    .loading{text-align:center;padding:40px;color:var(--tm);font-size:13px;opacity:0;animation:fU .4s .3s ease forwards}
+    .loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+    .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:20px 36px;font-size:16px;font-weight:600;color:var(--tp);z-index:999;display:none;box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px var(--accent-glow);white-space:nowrap;text-align:center;min-width:220px;backdrop-filter:blur(12px)}
+    .toast.show{display:block;animation:popToast .35s cubic-bezier(.34,1.56,.64,1)}
+    .toast.success{border-color:var(--accent);color:var(--accent);background:linear-gradient(135deg,var(--surface),#131a13)}
+    .toast.error{border-color:var(--red);color:var(--red);background:linear-gradient(135deg,var(--surface),#1a1313);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #ef444433}
+    .toast.warn{border-color:var(--yellow);color:var(--yellow);background:linear-gradient(135deg,var(--surface),#1a1713);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #f59e0b33}
+    @media(max-width:480px){.fr{flex-direction:column}.btn-a{width:100%}.md{padding:24px 20px}.toast{min-width:180px;padding:16px 24px;font-size:14px}}
   </style>
 </head>
 <body>
 
-  <!-- ============ 拨号页面 ============ -->
-  <div id="callPage">
-    <div class="call-avatar-ring">
-      <div class="call-avatar">
-        <svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
-      </div>
-    </div>
-    <div class="call-label" id="callLabel">一键拨号</div>
-    <div class="call-name" id="callName" style="display:none"></div>
-    <div class="call-number" id="callNumber"></div>
-    <a class="call-btn" id="callBtn" href="#">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
-      <span class="btn-text">点击拨打电话</span>
-    </a>
-    <p class="call-hint">点击上方按钮跳转至<strong>手机拨号界面</strong></p>
+<div class="wrap" id="app">
+  <div class="hd">
+    <div class="ico"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>
+    <h1>电话号码管理</h1>
   </div>
 
-  <!-- ============ 管理页面 ============ -->
-  <div id="adminPage">
-    <div class="admin-header">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
-      </div>
-      <h1>电话号码管理</h1>
-      <p>添加号码并为每个号码生成独立二维码</p>
-    </div>
-
-    <!-- 添加表单 -->
-    <div class="add-form">
-      <div class="form-title">
-        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        添加新号码
-      </div>
-      <div class="form-row">
-        <div class="input-wrap">
-          <label>电话号码 *</label>
-          <input type="tel" id="inputPhone" placeholder="例如 15291989408" maxlength="20">
-        </div>
-        <div class="input-wrap">
-          <label>备注名称</label>
-          <input type="text" id="inputName" placeholder="例如 张先生" maxlength="20">
-        </div>
-      </div>
-      <div class="form-row">
-        <button class="btn-add" id="btnAdd">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          添加号码
-        </button>
-      </div>
-    </div>
-
-    <!-- 列表 -->
-    <div class="list-header">
-      <h2>已保存的号码</h2>
-      <span class="list-count" id="listCount">0 个</span>
-    </div>
-    <div class="phone-list" id="phoneList"></div>
+  <div class="st-bar">
+    <span class="st-tag" id="stTag" onclick="openSettings()">&#9881; 配置 GitHub</span>
   </div>
 
-  <!-- ============ 编辑弹窗 ============ -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal">
-      <h3>编辑号码</h3>
-      <div class="input-wrap">
-        <label>电话号码</label>
-        <input type="tel" id="editPhone" maxlength="20">
-      </div>
-      <div class="input-wrap">
-        <label>备注名称</label>
-        <input type="text" id="editName" maxlength="20">
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="editCancel">取消</button>
-        <button class="btn-confirm" id="editSave">保存</button>
-      </div>
+  <div class="form" id="addForm">
+    <div class="form-tl">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      添加新号码
+    </div>
+    <div class="fr">
+      <div class="iw"><label>电话号码 *</label><input type="tel" id="inpPhone" placeholder="例如 15291989408" maxlength="20"></div>
+      <div class="iw"><label>备注名称</label><input type="text" id="inpName" placeholder="例如 张先生" maxlength="20"></div>
+    </div>
+    <div class="fr">
+      <button class="btn-a" id="btnAdd" onclick="addPhone()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        添加号码
+      </button>
     </div>
   </div>
 
-  <!-- ============ 删除确认弹窗 ============ -->
-  <div class="modal-overlay" id="deleteModal">
-    <div class="modal">
-      <h3>确认删除</h3>
-      <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:4px;" id="deleteInfo"></p>
-      <p style="text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:8px;">删除后对应二维码将失效</p>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="deleteCancel">取消</button>
-        <button class="btn-confirm danger" id="deleteConfirm">删除</button>
-      </div>
+  <div class="lh" id="listHead"><h2>已保存的号码</h2><span class="lc" id="listCnt">0 个</span></div>
+
+  <div class="pl" id="phoneList">
+    <div class="loading"><div class="spinner"></div>加载中...</div>
+  </div>
+</div>
+
+<!-- 配置弹窗 -->
+<div class="mbg" id="settingsModal">
+  <div class="md">
+    <h3>GitHub 配置</h3>
+    <p class="desc">需要一个 <a href="https://github.com/settings/tokens" target="_blank">GitHub Token (classic)</a><br>权限勾选 <strong>repo</strong></p>
+    <div class="iw"><label>Token *</label><input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx"></div>
+    <div class="iw"><label>用户名 *</label><input type="text" id="cfgOwner" placeholder="例如 lsxun"></div>
+    <div class="iw"><label>仓库名 *</label><input type="text" id="cfgRepo" placeholder="例如 call-page"></div>
+    <div class="test-r" id="testResult"></div>
+    <button class="btn-test" id="btnTest" onclick="testConn()">测试连接</button>
+    <div class="ma">
+      <button class="mc" onclick="cancelSettings()">取消</button>
+      <button class="mo" onclick="saveSettings()">保存配置</button>
     </div>
   </div>
+</div>
 
-  <!-- ============ 二维码弹窗 ============ -->
-  <div class="modal-overlay" id="qrModal">
-    <div class="modal qr-modal">
-      <h3 id="qrTitle">二维码</h3>
-      <div class="qr-display">
-        <div class="qr-box" id="qrBox"></div>
-      </div>
-      <div class="qr-url" id="qrUrl"></div>
-      <p class="qr-tip">微信 / 浏览器 / 相机 扫码即可拨号</p>
-      <button class="btn-download" id="btnDownload">保存二维码图片</button>
-      <button class="btn-close" id="qrClose">关闭</button>
+<!-- 编辑弹窗 -->
+<div class="mbg" id="editModal">
+  <div class="md">
+    <h3>编辑号码</h3>
+    <div class="iw"><label>电话号码</label><input type="tel" id="edPhone" maxlength="20"></div>
+    <div class="iw"><label>备注名称</label><input type="text" id="edName" maxlength="20"></div>
+    <div class="ma">
+      <button class="mc" onclick="closeM('editModal')">取消</button>
+      <button class="mo" onclick="saveEdit()">保存</button>
     </div>
   </div>
+</div>
 
-  <!-- ============ Toast ============ -->
-  <div class="toast" id="toast"></div>
+<!-- 删除弹窗 -->
+<div class="mbg" id="delModal">
+  <div class="md">
+    <h3>确认删除</h3>
+    <p id="delInfo" style="text-align:center;color:var(--ts);font-size:14px;margin-bottom:4px"></p>
+    <p style="text-align:center;color:var(--tm);font-size:12px">删除后对应二维码将失效</p>
+    <div class="ma">
+      <button class="mc" onclick="closeM('delModal')">取消</button>
+      <button class="mo red" onclick="confirmDel()">删除</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    // ====== 配置 ======
-    var SITE_BASE = location.origin + location.pathname;
+<!-- 二维码弹窗 -->
+<div class="mbg" id="qrModal">
+  <div class="md qm">
+    <h3 id="qrTitle">二维码</h3>
+    <div class="qd"><div class="qb" id="qrBox"></div></div>
+    <div class="qu" id="qrUrl"></div>
+    <p class="qt">微信 / 浏览器 / 相机 扫码即可拨号</p>
+    <button class="btn-dl" onclick="dlQr()">保存二维码图片</button>
+    <button class="btn-cl" onclick="closeM('qrModal')">关闭</button>
+  </div>
+</div>
 
-    // ====== 数据管理 ======
-    function getPhones() {
-      try { return JSON.parse(localStorage.getItem('phones') || '[]'); }
-      catch(e) { return []; }
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+var cfg = JSON.parse(localStorage.getItem('ghCfg') || '{}');
+var SHA = null;
+var DATA = null;
+var configured = false;
+
+function $(id){ return document.getElementById(id); }
+function closeM(id){ $(id).classList.remove('show'); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function fmt(n){ var d=n.replace(/\D/g,''); if(d.length===11) return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7); return n; }
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ============ Toast ============
+function toast(m, type){
+  var t=$('toast');
+  t.textContent=m;
+  t.className='toast show '+(type||'');
+  clearTimeout(t._t);
+  t._t=setTimeout(function(){t.className='toast';},2500);
+}
+
+// ============ UTF-8 base64 ============
+function b64Decode(str){
+  try{
+    return decodeURIComponent(atob(str).split('').map(function(c){
+      return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  }catch(e){return atob(str)}
+}
+function b64Encode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,function(m,p){
+    return String.fromCharCode('0x'+p);
+  }));
+}
+
+// ============ 页面控制 ============
+function hidePage(){
+  $('addForm').style.display='none';
+  $('listHead').style.display='none';
+  $('phoneList').style.display='none';
+}
+function showPage(){
+  $('addForm').style.display='';
+  $('listHead').style.display='';
+  $('phoneList').style.display='';
+}
+
+// ============ GitHub API ============
+function apiUrl(path){
+  return 'https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/'+path;
+}
+
+async function ghGet(path){
+  var res=await fetch(apiUrl(path),{
+    headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+  });
+  if(res.status===401) throw new Error('TOKEN_INVALID');
+  if(res.status===403) throw new Error('TOKEN_NO_permission');
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error('GET failed: '+res.status);
+  var data=await res.json();
+  return {content:JSON.parse(b64Decode(data.content)),sha:data.sha};
+}
+
+async function ghPut(path,content,sha,msg){
+  var body={
+    message:msg||'Update phones.json',
+    content:b64Encode(JSON.stringify(content,null,2))
+  };
+  if(sha) body.sha=sha;
+  var res=await fetch(apiUrl(path),{
+    method:'PUT',
+    headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body:JSON.stringify(body)
+  });
+  if(res.status===401) throw new Error('TOKEN_INVALID');
+  if(res.status===403) throw new Error('TOKEN_NO_permission');
+  if(!res.ok) throw new Error('PUT failed: '+res.status);
+  var data=await res.json();
+  return data.content.sha;
+}
+
+// ============ 设置 ============
+function openSettings(){
+  $('cfgToken').value=cfg.token||'';
+  $('cfgOwner').value=cfg.owner||'';
+  $('cfgRepo').value=cfg.repo||'';
+  $('testResult').className='test-r';
+  $('testResult').style.display='none';
+  $('btnTest').textContent='测试连接';
+  $('btnTest').disabled=false;
+  $('settingsModal').classList.add('show');
+}
+
+function cancelSettings(){
+  closeM('settingsModal');
+  if(!configured){
+    toast('必须配置 GitHub 才能使用','warn');
+    setTimeout(function(){openSettings();},800);
+  }
+}
+
+function saveSettings(){
+  var token=$('cfgToken').value.trim();
+  var owner=$('cfgOwner').value.trim();
+  var repo=$('cfgRepo').value.trim();
+  if(!token||!owner||!repo){
+    toast('请填写所有配置项','warn');
+    return;
+  }
+  cfg={token:token,owner:owner,repo:repo};
+  localStorage.setItem('ghCfg',JSON.stringify(cfg));
+  closeM('settingsModal');
+  toast('配置已保存，正在验证...','success');
+  loadData();
+}
+
+async function testConn(){
+  var token=$('cfgToken').value.trim();
+  var owner=$('cfgOwner').value.trim();
+  var repo=$('cfgRepo').value.trim();
+  if(!token||!owner||!repo){
+    toast('请填写所有配置项','warn');
+    return;
+  }
+  var el=$('testResult');
+  var btn=$('btnTest');
+  btn.textContent='测试中...';
+  btn.disabled=true;
+  el.className='test-r';
+  el.style.display='none';
+  try{
+    var controller=new AbortController();
+    var timer=setTimeout(function(){controller.abort()},10000);
+    var res=await fetch('https://api.github.com/repos/'+owner+'/'+repo,{
+      headers:{'Authorization':'token '+token},
+      signal:controller.signal
+    });
+    clearTimeout(timer);
+    if(res.ok){
+      el.className='test-r ok';
+      el.textContent='连接成功';
+      toast('连接成功，Token 有效','success');
+    }else if(res.status===401){
+      el.className='test-r fail';
+      el.textContent='Token 无效';
+      toast('连接失败：Token 无效','error');
+    }else if(res.status===404){
+      el.className='test-r fail';
+      el.textContent='仓库不存在';
+      toast('连接失败：仓库不存在','error');
+    }else{
+      el.className='test-r fail';
+      el.textContent='错误: '+res.status;
+      toast('连接失败：错误码 '+res.status,'error');
     }
-
-    function savePhones(list) {
-      localStorage.setItem('phones', JSON.stringify(list));
+  }catch(e){
+    if(e.name==='AbortError'){
+      el.className='test-r fail';
+      el.textContent='连接超时';
+      toast('连接失败：网络超时，无法访问 GitHub','error');
+    }else{
+      el.className='test-r fail';
+      el.textContent='网络错误';
+      toast('连接失败：网络错误','error');
     }
+  }finally{
+    btn.textContent='测试连接';
+    btn.disabled=false;
+  }
+}
 
-    function genId() {
-      return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+// ============ 数据读写 ============
+async function loadData(){
+  hidePage();
+  try{
+    var result=await ghGet('phones.json');
+    if(result){DATA=result.content;SHA=result.sha;}
+    else{DATA={phones:[]};SHA=null;}
+    configured=true;
+    $('stTag').textContent='已配置';
+    $('stTag').className='st-tag st-ok';
+    showPage();
+    render();
+  }catch(e){
+    configured=false;
+    if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){
+      $('stTag').textContent='Token 错误';
+      $('stTag').className='st-tag st-err';
+      toast('Token 无效或无权限，请重新配置','error');
+      hidePage();
+      openSettings();
+    }else{
+      $('stTag').textContent='加载失败';
+      $('stTag').className='st-tag st-err';
+      showPage();
+      $('phoneList').innerHTML='<div class="empty"><h3>加载失败</h3><p>'+esc(e.message)+'</p></div>';
     }
+  }
+}
 
-    // ====== Toast ======
-    function toast(msg) {
-      var t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(function() { t.classList.remove('show'); }, 2000);
+async function saveData(action){
+  try{
+    SHA=await ghPut('phones.json',DATA,SHA,action);
+    render();
+    return true;
+  }catch(e){
+    if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){
+      configured=false;
+      $('stTag').textContent='Token 错误';
+      $('stTag').className='st-tag st-err';
+      toast('Token 已失效，请重新配置','error');
+      hidePage();
+      openSettings();
+    }else{
+      toast('保存失败：'+e.message,'error');
     }
+    return false;
+  }
+}
 
-    // ====== 拨号格式化 ======
-    function formatPhone(num) {
-      var d = num.replace(/\D/g, '');
-      if (d.length === 11) {
-        return d.slice(0,3) + ' ' + d.slice(3,7) + ' ' + d.slice(7);
-      }
-      return num;
-    }
+// ============ CRUD ============
+async function addPhone(){
+  if(!cfg.token){openSettings();return;}
+  var phone=$('inpPhone').value.trim();
+  var name=$('inpName').value.trim();
+  if(!phone){
+    toast('请输入电话号码','warn');
+    $('inpPhone').focus();
+    $('inpPhone').style.animation='shake .4s';
+    setTimeout(function(){$('inpPhone').style.animation=''},400);
+    return;
+  }
+  if(!DATA) DATA={phones:[]};
+  DATA.phones.push({id:uid(),phone:phone,name:name,created:new Date().toISOString()});
+  var ok=await saveData('添加号码 '+fmt(phone));
+  if(ok){$('inpPhone').value='';$('inpName').value='';toast('添加成功','success');}
+}
 
-    // ====== 路由判断 ======
-    var params = new URLSearchParams(location.search);
-    var callId = params.get('id');
+var edId=null;
+function openEdit(id){
+  edId=id;
+  var it=DATA.phones.find(function(x){return x.id===id;});
+  if(!it)return;
+  $('edPhone').value=it.phone;
+  $('edName').value=it.name;
+  $('editModal').classList.add('show');
+}
+async function saveEdit(){
+  var phone=$('edPhone').value.trim();
+  var name=$('edName').value.trim();
+  if(!phone){toast('电话号码不能为空','warn');return;}
+  var it=DATA.phones.find(function(x){return x.id===edId;});
+  if(it){it.phone=phone;it.name=name;}
+  var ok=await saveData('修改号码 '+fmt(phone));
+  if(ok){closeM('editModal');toast('修改成功','success');}
+}
 
-    if (callId) {
-      showCallPage(callId);
-    } else {
-      showAdminPage();
-    }
+var delId=null;
+function openDel(id){
+  delId=id;
+  var it=DATA.phones.find(function(x){return x.id===id;});
+  if(!it)return;
+  $('delInfo').textContent=(it.name?it.name+' - ':'')+fmt(it.phone);
+  $('delModal').classList.add('show');
+}
+async function confirmDel(){
+  var it=DATA.phones.find(function(x){return x.id===delId;});
+  DATA.phones=DATA.phones.filter(function(x){return x.id!==delId;});
+  var ok=await saveData('删除号码 '+(it?fmt(it.phone):''));
+  if(ok){closeM('delModal');toast('已删除','success');}
+}
 
-    // ============ 拨号页面逻辑 ============
-    function showCallPage(id) {
-      document.getElementById('callPage').style.display = 'flex';
-      var phones = getPhones();
-      var item = phones.find(function(p) { return p.id === id; });
+// ============ 二维码 ============
+function baseUrl(){
+  return 'https://'+cfg.owner+'.github.io/'+cfg.repo+'/call.html';
+}
 
-      if (item) {
-        document.getElementById('callName').textContent = item.name;
-        document.getElementById('callName').style.display = 'block';
-        document.getElementById('callLabel').textContent = '一键拨号';
-        document.getElementById('callNumber').innerHTML = formatPhone(item.phone).replace(/ /g, '<span class="sep"></span>');
-        document.getElementById('callBtn').href = 'tel:' + item.phone;
-        document.title = '拨打电话 - ' + (item.name || item.phone);
-      } else {
-        // 如果找不到记录，尝试用 id 作为电话号码（兼容直接传号码的情况）
-        var phone = id.replace(/\D/g, '');
-        if (phone.length >= 5) {
-          document.getElementById('callNumber').innerHTML = formatPhone(phone).replace(/ /g, '<span class="sep"></span>');
-          document.getElementById('callBtn').href = 'tel:' + phone;
-          document.title = '拨打电话 - ' + phone;
-        }
-      }
+function showQr(id){
+  var it=DATA.phones.find(function(x){return x.id===id;});
+  if(!it)return;
+  var url=baseUrl()+'?id='+id;
+  $('qrTitle').textContent=it.name||fmt(it.phone);
+  $('qrUrl').textContent=url;
+  var box=$('qrBox');box.innerHTML='';
+  new QRCode(box,{text:url,width:200,height:200,colorDark:'#13131a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  $('qrModal').classList.add('show');
+}
 
-      document.getElementById('callBtn').addEventListener('click', function() {
-        this.classList.add('ringing');
-        var self = this;
-        setTimeout(function() { self.classList.remove('ringing'); }, 2000);
-      });
-    }
+function dlQr(){
+  var c=$('qrBox canvas');
+  if(c){var a=document.createElement('a');a.download='qr-code.png';a.href=c.toDataURL('image/png');a.click();toast('二维码已保存','success');}
+  else{var i=$('qrBox img');if(i){var a=document.createElement('a');a.href=i.src;a.download='qr-code.png';a.click();}}
+}
 
-    // ============ 管理页面逻辑 ============
-    function showAdminPage() {
-      document.getElementById('adminPage').style.display = 'block';
-      renderList();
+// ============ 渲染 ============
+function render(){
+  var list=DATA?DATA.phones:[];
+  $('listCnt').textContent=list.length+' 个';
+  if(!list.length){
+    $('phoneList').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg><h3>还没有号码</h3><p>在上方输入电话号码添加</p></div>';
+    return;
+  }
+  var h='';
+  list.forEach(function(it,i){
+    var d=Math.min(i*.06,.4);
+    h+='<div class="pc" style="animation-delay:'+d+'s">'+
+      '<div class="ci"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>'+
+      '<div class="cinf"><div class="cnm">'+esc(it.name||'-')+'</div><div class="cnum">'+esc(fmt(it.phone))+'</div></div>'+
+      '<div class="ca">'+
+      '<button class="bi bq" title="二维码" onclick="showQr(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></button>'+
+      '<button class="bi be" title="编辑" onclick="openEdit(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'+
+      '<button class="bi bd" title="删除" onclick="openDel(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'+
+      '</div></div>';
+  });
+  $('phoneList').innerHTML=h;
+}
 
-      // 添加
-      document.getElementById('btnAdd').addEventListener('click', addPhone);
-      document.getElementById('inputPhone').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') addPhone();
-      });
-
-      // 编辑弹窗
-      document.getElementById('editCancel').addEventListener('click', function() {
-        document.getElementById('editModal').classList.remove('show');
-      });
-      document.getElementById('editSave').addEventListener('click', saveEdit);
-
-      // 删除弹窗
-      document.getElementById('deleteCancel').addEventListener('click', function() {
-        document.getElementById('deleteModal').classList.remove('show');
-      });
-      document.getElementById('deleteConfirm').addEventListener('click', confirmDelete);
-
-      // QR 弹窗
-      document.getElementById('qrClose').addEventListener('click', function() {
-        document.getElementById('qrModal').classList.remove('show');
-      });
-      document.getElementById('btnDownload').addEventListener('click', downloadQr);
-    }
-
-    // 添加号码
-    function addPhone() {
-      var phone = document.getElementById('inputPhone').value.trim();
-      var name = document.getElementById('inputName').value.trim();
-
-      if (!phone) {
-        toast('请输入电话号码');
-        document.getElementById('inputPhone').focus();
-        document.getElementById('inputPhone').style.animation = 'shake 0.4s';
-        setTimeout(function() { document.getElementById('inputPhone').style.animation = ''; }, 400);
-        return;
-      }
-
-      var list = getPhones();
-      list.push({ id: genId(), phone: phone, name: name || '' });
-      savePhones(list);
-
-      document.getElementById('inputPhone').value = '';
-      document.getElementById('inputName').value = '';
-      renderList();
-      toast('添加成功');
-    }
-
-    // 渲染列表
-    function renderList() {
-      var list = getPhones();
-      var container = document.getElementById('phoneList');
-      var countEl = document.getElementById('listCount');
-      countEl.textContent = list.length + ' 个';
-
-      if (list.length === 0) {
-        container.innerHTML =
-          '<div class="empty-state">' +
-            '<svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>' +
-            '<h3>还没有号码</h3>' +
-            '<p>在上方输入电话号码添加</p>' +
-          '</div>';
-        return;
-      }
-
-      var html = '';
-      list.forEach(function(item, i) {
-        var display = item.name ? item.name : '未命名';
-        var delay = Math.min(i * 0.06, 0.4);
-        html +=
-          '<div class="phone-card" style="animation-delay:' + delay + 's">' +
-            '<div class="card-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>' +
-            '<div class="card-info">' +
-              '<div class="card-name">' + escHtml(display) + '</div>' +
-              '<div class="card-number">' + escHtml(formatPhone(item.phone)) + '</div>' +
-            '</div>' +
-            '<div class="card-actions">' +
-              '<button class="btn-icon btn-qr" title="查看二维码" onclick="showQr(\'' + item.id + '\')">' +
-                '<svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>' +
-              '</button>' +
-              '<button class="btn-icon btn-link" title="复制链接" onclick="copyLink(\'' + item.id + '\')">' +
-                '<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>' +
-              '</button>' +
-              '<button class="btn-icon btn-edit" title="编辑" onclick="openEdit(\'' + item.id + '\')">' +
-                '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>' +
-              '</button>' +
-              '<button class="btn-icon btn-del" title="删除" onclick="openDelete(\'' + item.id + '\')">' +
-                '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>' +
-              '</button>' +
-            '</div>' +
-          '</div>';
-      });
-      container.innerHTML = html;
-    }
-
-    function escHtml(s) {
-      var d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
-    }
-
-    // 编辑
-    var editId = null;
-    function openEdit(id) {
-      editId = id;
-      var list = getPhones();
-      var item = list.find(function(p) { return p.id === id; });
-      if (!item) return;
-      document.getElementById('editPhone').value = item.phone;
-      document.getElementById('editName').value = item.name;
-      document.getElementById('editModal').classList.add('show');
-    }
-
-    function saveEdit() {
-      var phone = document.getElementById('editPhone').value.trim();
-      var name = document.getElementById('editName').value.trim();
-      if (!phone) { toast('电话号码不能为空'); return; }
-      var list = getPhones();
-      var item = list.find(function(p) { return p.id === editId; });
-      if (item) {
-        item.phone = phone;
-        item.name = name;
-        savePhones(list);
-        renderList();
-        toast('修改成功');
-      }
-      document.getElementById('editModal').classList.remove('show');
-    }
-
-    // 删除
-    var deleteId = null;
-    function openDelete(id) {
-      deleteId = id;
-      var list = getPhones();
-      var item = list.find(function(p) { return p.id === id; });
-      if (!item) return;
-      document.getElementById('deleteInfo').textContent =
-        (item.name ? item.name + ' - ' : '') + formatPhone(item.phone);
-      document.getElementById('deleteModal').classList.add('show');
-    }
-
-    function confirmDelete() {
-      var list = getPhones().filter(function(p) { return p.id !== deleteId; });
-      savePhones(list);
-      renderList();
-      document.getElementById('deleteModal').classList.remove('show');
-      toast('已删除');
-    }
-
-    // 查看二维码
-    function showQr(id) {
-      var list = getPhones();
-      var item = list.find(function(p) { return p.id === id; });
-      if (!item) return;
-
-      var url = SITE_BASE + '?id=' + id;
-      document.getElementById('qrTitle').textContent = item.name || formatPhone(item.phone);
-      document.getElementById('qrUrl').textContent = url;
-
-      var qrBox = document.getElementById('qrBox');
-      qrBox.innerHTML = '';
-      new QRCode(qrBox, {
-        text: url,
-        width: 200,
-        height: 200,
-        colorDark: '#13131a',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-
-      document.getElementById('qrModal').classList.add('show');
-    }
-
-    // 下载二维码
-    function downloadQr() {
-      var canvas = document.querySelector('#qrBox canvas');
-      if (!canvas) {
-        var img = document.querySelector('#qrBox img');
-        if (img) {
-          var a = document.createElement('a');
-          a.href = img.src;
-          a.download = 'qr-code.png';
-          a.click();
-        }
-        return;
-      }
-      var link = document.createElement('a');
-      link.download = 'qr-code.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      toast('二维码已保存');
-    }
-
-    // 复制链接
-    function copyLink(id) {
-      var url = SITE_BASE + '?id=' + id;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(function() {
-          toast('链接已复制');
-        });
-      } else {
-        var input = document.createElement('input');
-        input.value = url;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-        toast('链接已复制');
-      }
-    }
-  </script>
-
+// ============ 初始化 ============
+(function init(){
+  hidePage();
+  if(cfg.token&&cfg.owner&&cfg.repo){
+    $('stTag').textContent='已配置';
+    $('stTag').className='st-tag st-ok';
+    loadData();
+  }else{
+    $('stTag').className='st-tag';
+    openSettings();
+  }
+  $('inpPhone').addEventListener('keydown',function(e){if(e.key==='Enter')addPhone();});
+})();
+</script>
 </body>
 </html>
