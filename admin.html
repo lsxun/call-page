@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>电话号码管理2</title>
+  <title>电话号码管理</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -19,6 +19,8 @@
     @keyframes fadeI{from{opacity:0}to{opacity:1}}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes popToast{from{opacity:0;transform:translate(-50%,-50%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+    @keyframes dotPulse{0%,80%,100%{opacity:.3;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+
     .wrap{max-width:540px;margin:0 auto;padding:20px 16px 80px;position:relative;z-index:1}
     .hd{text-align:center;padding:24px 0 28px;opacity:0;animation:fU .5s .1s ease forwards}
     .hd .ico{width:52px;height:52px;border-radius:14px;background:var(--accent-dim);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
@@ -64,41 +66,181 @@
     .empty svg{width:56px;height:56px;fill:var(--tm);margin-bottom:16px;opacity:.4}
     .empty h3{font-size:16px;font-weight:500;color:var(--ts);margin-bottom:6px}
     .empty p{font-size:13px;color:var(--tm)}
+
+    /* ========== 登录弹窗 ========== */
+    .login-bg{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .login-bg.show{display:flex;animation:fadeI .3s ease}
+    .login-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#0d1f14 0%,#0a0a0f 70%)}
+    .login-bg::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.04;pointer-events:none}
+    .login-card{position:relative;z-index:1;width:380px;max-width:100%;animation:pI .4s cubic-bezier(.34,1.56,.64,1)}
+    .login-logo{text-align:center;margin-bottom:32px}
+    .login-logo .lg-icon{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 32px #22c55e33}
+    .login-logo .lg-icon svg{width:36px;height:36px;fill:#fff}
+    .login-logo h2{font-size:26px;font-weight:700;color:var(--tp);margin-bottom:6px;letter-spacing:.02em}
+    .login-logo p{font-size:13px;color:var(--tm)}
+    .login-form{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px}
+    .login-form .fi{margin-bottom:16px}
+    .login-form .fi:last-of-type{margin-bottom:24px}
+    .login-form .fi label{display:block;font-size:12px;color:var(--ts);margin-bottom:8px;font-weight:500}
+    .login-form .fi .fi-wrap{position:relative}
+    .login-form .fi .fi-wrap .fi-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--tm);pointer-events:none;transition:fill .2s}
+    .login-form .fi input{width:100%;padding:14px 14px 14px 42px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--tp);font-family:'JetBrains Mono','Noto Sans SC',monospace;font-size:14px;outline:none;transition:all .2s}
+    .login-form .fi input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+    .login-form .fi input:focus+.fi-icon-wrap .fi-icon,.login-form .fi input:focus~.fi-icon{fill:var(--accent)}
+    .login-form .fi input::placeholder{color:var(--tm)}
+    .login-btn{width:100%;padding:15px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#16a34a);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:all .2s;letter-spacing:.1em;position:relative;overflow:hidden;box-shadow:0 4px 16px #22c55e33}
+    .login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px #22c55e44}
+    .login-btn:active{transform:translateY(0)}
+    .login-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .login-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent 60%);pointer-events:none}
+    .login-btn .btn-loading{display:none;align-items:center;justify-content:center;gap:8px}
+    .login-btn .btn-loading .dot{width:6px;height:6px;border-radius:50%;background:#fff}
+    .login-btn .btn-loading .dot:nth-child(1){animation:dotPulse 1.2s 0s infinite}
+    .login-btn .btn-loading .dot:nth-child(2){animation:dotPulse 1.2s .2s infinite}
+    .login-btn .btn-loading .dot:nth-child(3){animation:dotPulse 1.2s .4s infinite}
+    .login-btn.loading .btn-text{display:none}
+    .login-btn.loading .btn-loading{display:flex}
+    .login-err{text-align:center;font-size:13px;color:var(--red);margin-top:12px;min-height:20px}
+
+    /* ========== 其他弹窗 ========== */
     .mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
     .mbg.show{display:flex;animation:fadeI .2s ease}
     .md{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;animation:pI .3s cubic-bezier(.34,1.56,.64,1)}
     .md h3{font-size:18px;font-weight:600;margin-bottom:20px;text-align:center}
     .md .iw{margin-bottom:14px}
-    .md .desc{font-size:13px;color:var(--ts);text-align:center;margin-bottom:20px;line-height:1.6}
-    .md .desc a{color:var(--accent);text-decoration:none}
     .ma{display:flex;gap:10px;margin-top:20px}
     .mc{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
     .mc:hover{border-color:var(--tm)}
     .mo{flex:1;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#0a0a0a;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
     .mo:hover{opacity:.9}
     .mo.red{background:var(--red);color:#fff}
-    .qm .qd{display:flex;justify-content:center;margin-bottom:16px}
-    .qm .qd .qb{background:#fff;border-radius:14px;padding:20px}
-    .qm .qu{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;text-align:center;margin-bottom:8px}
-    .qm .qt{font-size:12px;color:var(--tm);text-align:center;margin-bottom:16px}
-    .btn-dl{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px}
-    .btn-dl:hover{opacity:.85}
-    .btn-cl{display:block;width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ts);font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
-    .btn-cl:hover{border-color:var(--tm)}
-    .btn-test{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
-    .btn-test:hover{opacity:.85}
-    .btn-test:disabled{opacity:.5;cursor:not-allowed}
-    .test-r{text-align:center;font-size:13px;padding:8px;border-radius:8px;margin-bottom:10px;display:none}
-    .test-r.ok{display:block;background:var(--accent-dim);color:var(--accent)}
-    .test-r.fail{display:block;background:var(--red-dim);color:var(--red)}
+
+    /* ========== 打印卡二维码 ========== */
+    .qr-print-card{
+      width:360px;
+      background:#111;
+      border-radius:20px;
+      padding:32px 28px 24px;
+      text-align:center;
+      animation:pI .35s cubic-bezier(.34,1.56,.64,1);
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
+      position:relative;
+    }
+
+    /* 外框装饰 */
+    .qr-print-card::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:20px;
+      border:2px solid rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    /* 二维码容器 */
+    .qr-print-qr{
+      display:inline-block;
+      background:#fff;
+      border-radius:16px;
+      padding:14px;
+      position:relative;
+      margin-bottom:20px;
+    }
+
+    .qr-print-qr canvas,
+    .qr-print-qr img{
+      border-radius:8px;
+      display:block;
+    }
+
+    /* 二维码中间的汽车图标 */
+    .qr-car-icon{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      width:48px;
+      height:48px;
+      background:#111;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 4px #fff;
+    }
+
+    .qr-car-icon svg{
+      width:28px;
+      height:28px;
+      fill:#22c55e;
+    }
+
+    /* 扫码文字 */
+    .qr-print-scan{
+      font-size:18px;
+      font-weight:600;
+      color:rgba(255,255,255,.85);
+      margin-bottom:6px;
+      letter-spacing:.1em;
+    }
+
+    .qr-print-call{
+      font-size:22px;
+      font-weight:700;
+      color:#fff;
+      margin-bottom:24px;
+      letter-spacing:.06em;
+    }
+
+    /* 红字提示 */
+    .qr-print-notice{
+      font-size:16px;
+      font-weight:700;
+      color:#ef4444;
+      letter-spacing:.12em;
+      padding:14px 0;
+      border-top:1px solid rgba(255,255,255,.08);
+      margin-bottom:20px;
+    }
+
+    /* 按钮 */
+    .qr-print-actions{
+      display:flex;
+      gap:10px;
+    }
+    .qr-print-btn{
+      flex:1;
+      padding:13px;
+      border-radius:12px;
+      font-family:'Noto Sans SC',sans-serif;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .15s;
+      border:none;
+    }
+    .qr-print-btn.save{
+      background:#22c55e;
+      color:#fff;
+    }
+    .qr-print-btn.save:hover{opacity:.85}
+    .qr-print-btn.close{
+      background:transparent;
+      border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.6);
+    }
+    .qr-print-btn.close:hover{border-color:rgba(255,255,255,.3);color:#fff}
+
     .loading{text-align:center;padding:40px;color:var(--tm);font-size:13px;opacity:0;animation:fU .4s .3s ease forwards}
     .loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+
     .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:20px 36px;font-size:16px;font-weight:600;color:var(--tp);z-index:999;display:none;box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px var(--accent-glow);white-space:nowrap;text-align:center;min-width:220px;backdrop-filter:blur(12px)}
     .toast.show{display:block;animation:popToast .35s cubic-bezier(.34,1.56,.64,1)}
     .toast.success{border-color:var(--accent);color:var(--accent);background:linear-gradient(135deg,var(--surface),#131a13)}
     .toast.error{border-color:var(--red);color:var(--red);background:linear-gradient(135deg,var(--surface),#1a1313);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #ef444433}
     .toast.warn{border-color:var(--yellow);color:var(--yellow);background:linear-gradient(135deg,var(--surface),#1a1713);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 20px #f59e0b33}
-    @media(max-width:480px){.fr{flex-direction:column}.btn-a{width:100%}.md{padding:24px 20px}.toast{min-width:180px;padding:16px 24px;font-size:14px}}
+
+    @media(max-width:480px){.fr{flex-direction:column}.btn-a{width:100%}.md{padding:24px 20px}.toast{min-width:180px;padding:16px 24px;font-size:14px}.login-card{width:100%}.login-form{padding:24px 20px}}
   </style>
 </head>
 <body>
@@ -108,11 +250,9 @@
     <div class="ico"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg></div>
     <h1>电话号码管理</h1>
   </div>
-
   <div class="st-bar">
-    <span class="st-tag" id="stTag" onclick="openSettings()">&#9881; 配置 GitHub</span>
+    <span class="st-tag" id="stTag" onclick="openLogin()">&#9881; 系统配置</span>
   </div>
-
   <div class="form" id="addForm">
     <div class="form-tl">
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
@@ -129,27 +269,40 @@
       </button>
     </div>
   </div>
-
   <div class="lh" id="listHead"><h2>已保存的号码</h2><span class="lc" id="listCnt">0 个</span></div>
-
-  <div class="pl" id="phoneList">
-    <div class="loading"><div class="spinner"></div>加载中...</div>
-  </div>
+  <div class="pl" id="phoneList"><div class="loading"><div class="spinner"></div>加载中...</div></div>
 </div>
 
-<!-- 配置弹窗 -->
-<div class="mbg" id="settingsModal">
-  <div class="md">
-    <h3>GitHub 配置</h3>
-    <p class="desc">需要一个 <a href="https://github.com/settings/tokens" target="_blank">GitHub Token (classic)</a><br>权限勾选 <strong>repo</strong></p>
-    <div class="iw"><label>Token *</label><input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx"></div>
-    <div class="iw"><label>用户名 *</label><input type="text" id="cfgOwner" placeholder="例如 lsxun"></div>
-    <div class="iw"><label>仓库名 *</label><input type="text" id="cfgRepo" placeholder="例如 call-page"></div>
-    <div class="test-r" id="testResult"></div>
-    <button class="btn-test" id="btnTest" onclick="testConn()">测试连接</button>
-    <div class="ma">
-      <button class="mc" onclick="cancelSettings()">取消</button>
-      <button class="mo" onclick="saveSettings()">保存配置</button>
+<!-- ========== 登录弹窗 ========== -->
+<div class="login-bg" id="loginModal">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="lg-icon">
+        <svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
+      </div>
+      <h2>电话号码管理</h2>
+      <p>请登录以继续使用</p>
+    </div>
+    <div class="login-form">
+      <div class="fi">
+        <label>管理员账号</label>
+        <div class="fi-wrap">
+          <input type="text" id="cfgOwner" placeholder="请输入用户名" autocomplete="username">
+          <svg class="fi-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+      </div>
+      <div class="fi">
+        <label>密码</label>
+        <div class="fi-wrap">
+          <input type="password" id="cfgToken" placeholder="请输入密码" autocomplete="current-password">
+          <svg class="fi-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        </div>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">
+        <span class="btn-text">登 录</span>
+        <span class="btn-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      </button>
     </div>
   </div>
 </div>
@@ -180,317 +333,354 @@
   </div>
 </div>
 
-<!-- 二维码弹窗 -->
+<!-- ========== 二维码打印卡弹窗 ========== -->
 <div class="mbg" id="qrModal">
-  <div class="md qm">
-    <h3 id="qrTitle">二维码</h3>
-    <div class="qd"><div class="qb" id="qrBox"></div></div>
-    <div class="qu" id="qrUrl"></div>
-    <p class="qt">微信 / 浏览器 / 相机 扫码即可拨号</p>
-    <button class="btn-dl" onclick="dlQr()">保存二维码图片</button>
-    <button class="btn-cl" onclick="closeM('qrModal')">关闭</button>
+  <div class="qr-print-card" id="qrPrintCard">
+    <!-- 二维码区域 -->
+    <div class="qr-print-qr" id="qrWrap">
+      <div id="qrBox"></div>
+      <!-- 中间汽车图标 -->
+      <div class="qr-car-icon">
+        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+      </div>
+    </div>
+
+    <!-- 文字 -->
+    <div class="qr-print-scan">手机扫码</div>
+    <div class="qr-print-call">呼叫车主</div>
+
+    <!-- 红字提示 -->
+    <div class="qr-print-notice">临时停车，敬请谅解</div>
+
+    <!-- 链接 -->
+    <div id="qrUrl" style="font-size:10px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;word-break:break-all;margin-bottom:18px"></div>
+
+    <!-- 按钮 -->
+    <div class="qr-print-actions">
+      <button class="qr-print-btn save" onclick="dlQrCard()">下载图片</button>
+      <button class="qr-print-btn close" onclick="closeM('qrModal')">关闭</button>
+    </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-var cfg = JSON.parse(localStorage.getItem('ghCfg') || '{}');
-var SHA = null;
-var DATA = null;
-var configured = false;
+var REPO_NAME='call-page';
+var cfg=JSON.parse(localStorage.getItem('ghCfg')||'{}');
+var SHA=null,DATA=null,configured=false;
 
-function $(id){ return document.getElementById(id); }
-function closeM(id){ $(id).classList.remove('show'); }
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-function fmt(n){ var d=n.replace(/\D/g,''); if(d.length===11) return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7); return n; }
-function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function $(id){return document.getElementById(id)}
+function closeM(id){$(id).classList.remove('show')}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fmt(n){var d=n.replace(/\D/g,'');if(d.length===11)return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7);return n}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-// ============ Toast ============
-function toast(m, type){
-  var t=$('toast');
-  t.textContent=m;
-  t.className='toast show '+(type||'');
-  clearTimeout(t._t);
-  t._t=setTimeout(function(){t.className='toast';},2500);
+function toast(m,type){
+  var t=$('toast');t.textContent=m;t.className='toast show '+(type||'');
+  clearTimeout(t._t);t._t=setTimeout(function(){t.className='toast'},2500);
 }
 
-// ============ UTF-8 base64 ============
-function b64Decode(str){
-  try{
-    return decodeURIComponent(atob(str).split('').map(function(c){
-      return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-  }catch(e){return atob(str)}
-}
-function b64Encode(str){
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,function(m,p){
-    return String.fromCharCode('0x'+p);
-  }));
-}
+function b64Decode(str){try{return decodeURIComponent(atob(str).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)}).join(''))}catch(e){return atob(str)}}
+function b64Encode(str){return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}))}
 
-// ============ 页面控制 ============
-function hidePage(){
-  $('addForm').style.display='none';
-  $('listHead').style.display='none';
-  $('phoneList').style.display='none';
-}
-function showPage(){
-  $('addForm').style.display='';
-  $('listHead').style.display='';
-  $('phoneList').style.display='';
-}
+function hidePage(){$('addForm').style.display='none';$('listHead').style.display='none';$('phoneList').style.display='none'}
+function showPage(){$('addForm').style.display='';$('listHead').style.display='';$('phoneList').style.display=''}
 
-// ============ GitHub API ============
-function apiUrl(path){
-  return 'https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/contents/'+path;
-}
+function apiUrl(path){return 'https://api.github.com/repos/'+cfg.owner+'/'+REPO_NAME+'/contents/'+path}
 
 async function ghGet(path){
-  var res=await fetch(apiUrl(path),{
-    headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
-  });
-  if(res.status===401) throw new Error('TOKEN_INVALID');
-  if(res.status===403) throw new Error('TOKEN_NO_permission');
-  if(res.status===404) return null;
-  if(!res.ok) throw new Error('GET failed: '+res.status);
+  var res=await fetch(apiUrl(path),{headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}});
+  if(res.status===401)throw new Error('TOKEN_INVALID');
+  if(res.status===403)throw new Error('TOKEN_NO_permission');
+  if(res.status===404)return null;
+  if(!res.ok)throw new Error('GET failed: '+res.status);
   var data=await res.json();
-  return {content:JSON.parse(b64Decode(data.content)),sha:data.sha};
+  return{content:JSON.parse(b64Decode(data.content)),sha:data.sha};
 }
 
 async function ghPut(path,content,sha,msg){
-  var body={
-    message:msg||'Update phones.json',
-    content:b64Encode(JSON.stringify(content,null,2))
-  };
-  if(sha) body.sha=sha;
-  var res=await fetch(apiUrl(path),{
-    method:'PUT',
-    headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-    body:JSON.stringify(body)
-  });
-  if(res.status===401) throw new Error('TOKEN_INVALID');
-  if(res.status===403) throw new Error('TOKEN_NO_permission');
-  if(!res.ok) throw new Error('PUT failed: '+res.status);
+  var body={message:msg||'Update phones.json',content:b64Encode(JSON.stringify(content,null,2))};
+  if(sha)body.sha=sha;
+  var res=await fetch(apiUrl(path),{method:'PUT',headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
+  if(res.status===401)throw new Error('TOKEN_INVALID');
+  if(res.status===403)throw new Error('TOKEN_NO_permission');
+  if(!res.ok)throw new Error('PUT failed: '+res.status);
   var data=await res.json();
   return data.content.sha;
 }
 
-// ============ 设置 ============
-function openSettings(){
-  $('cfgToken').value=cfg.token||'';
+// ========== 登录 ==========
+function openLogin(){
   $('cfgOwner').value=cfg.owner||'';
-  $('cfgRepo').value=cfg.repo||'';
-  $('testResult').className='test-r';
-  $('testResult').style.display='none';
-  $('btnTest').textContent='测试连接';
-  $('btnTest').disabled=false;
-  $('settingsModal').classList.add('show');
+  $('cfgToken').value=cfg.token||'';
+  $('loginErr').textContent='';
+  $('loginBtn').disabled=false;
+  $('loginBtn').classList.remove('loading');
+  $('loginModal').classList.add('show');
+  setTimeout(function(){$('cfgOwner').focus()},300);
 }
 
-function cancelSettings(){
-  closeM('settingsModal');
-  if(!configured){
-    toast('必须配置 GitHub 才能使用','warn');
-    setTimeout(function(){openSettings();},800);
-  }
-}
-
-function saveSettings(){
-  var token=$('cfgToken').value.trim();
+async function doLogin(){
   var owner=$('cfgOwner').value.trim();
-  var repo=$('cfgRepo').value.trim();
-  if(!token||!owner||!repo){
-    toast('请填写所有配置项','warn');
-    return;
-  }
-  cfg={token:token,owner:owner,repo:repo};
-  localStorage.setItem('ghCfg',JSON.stringify(cfg));
-  closeM('settingsModal');
-  toast('配置已保存，正在验证...','success');
-  loadData();
-}
-
-async function testConn(){
   var token=$('cfgToken').value.trim();
-  var owner=$('cfgOwner').value.trim();
-  var repo=$('cfgRepo').value.trim();
-  if(!token||!owner||!repo){
-    toast('请填写所有配置项','warn');
-    return;
-  }
-  var el=$('testResult');
-  var btn=$('btnTest');
-  btn.textContent='测试中...';
-  btn.disabled=true;
-  el.className='test-r';
-  el.style.display='none';
+  if(!owner){$('loginErr').textContent='请输入用户名';$('cfgOwner').focus();return}
+  if(!token){$('loginErr').textContent='请输入密码';$('cfgToken').focus();return}
+  $('loginErr').textContent='';
+  $('loginBtn').disabled=true;
+  $('loginBtn').classList.add('loading');
   try{
-    var controller=new AbortController();
-    var timer=setTimeout(function(){controller.abort()},10000);
-    var res=await fetch('https://api.github.com/repos/'+owner+'/'+repo,{
-      headers:{'Authorization':'token '+token},
-      signal:controller.signal
+    var c=new AbortController();
+    var t=setTimeout(function(){c.abort()},15000);
+    var res=await fetch('https://api.github.com/repos/'+owner+'/'+REPO_NAME,{
+      headers:{'Authorization':'token '+token},signal:c.signal
     });
-    clearTimeout(timer);
+    clearTimeout(t);
     if(res.ok){
-      el.className='test-r ok';
-      el.textContent='连接成功';
-      toast('连接成功，Token 有效','success');
+      cfg={owner:owner,token:token};
+      localStorage.setItem('ghCfg',JSON.stringify(cfg));
+      $('loginModal').classList.remove('show');
+      toast('登录成功','success');
+      loadData();
     }else if(res.status===401){
-      el.className='test-r fail';
-      el.textContent='Token 无效';
-      toast('连接失败：Token 无效','error');
+      $('loginErr').textContent='密码错误，请重新输入';
+      $('cfgToken').focus();
     }else if(res.status===404){
-      el.className='test-r fail';
-      el.textContent='仓库不存在';
-      toast('连接失败：仓库不存在','error');
+      $('loginErr').textContent='用户名不存在或无权访问';
     }else{
-      el.className='test-r fail';
-      el.textContent='错误: '+res.status;
-      toast('连接失败：错误码 '+res.status,'error');
+      $('loginErr').textContent='连接失败（'+res.status+'），请稍后重试';
     }
   }catch(e){
-    if(e.name==='AbortError'){
-      el.className='test-r fail';
-      el.textContent='连接超时';
-      toast('连接失败：网络超时，无法访问 GitHub','error');
-    }else{
-      el.className='test-r fail';
-      el.textContent='网络错误';
-      toast('连接失败：网络错误','error');
-    }
+    if(e.name==='AbortError'){$('loginErr').textContent='网络超时，请检查网络后重试';}
+    else{$('loginErr').textContent='网络异常，请稍后重试';}
   }finally{
-    btn.textContent='测试连接';
-    btn.disabled=false;
+    $('loginBtn').disabled=false;
+    $('loginBtn').classList.remove('loading');
   }
 }
 
-// ============ 数据读写 ============
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&$('loginModal').classList.contains('show')){
+    if(document.activeElement===$('cfgOwner')){$('cfgToken').focus()}
+    else if(document.activeElement===$('cfgToken')){doLogin()}
+  }
+});
+
+// ========== 数据 ==========
 async function loadData(){
   hidePage();
   try{
     var result=await ghGet('phones.json');
-    if(result){DATA=result.content;SHA=result.sha;}
-    else{DATA={phones:[]};SHA=null;}
+    if(result){DATA=result.content;SHA=result.sha}
+    else{DATA={phones:[]};SHA=null}
     configured=true;
-    $('stTag').textContent='已配置';
-    $('stTag').className='st-tag st-ok';
-    showPage();
-    render();
+    $('stTag').textContent='已连接';$('stTag').className='st-tag st-ok';
+    showPage();render();
   }catch(e){
     configured=false;
     if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){
-      $('stTag').textContent='Token 错误';
-      $('stTag').className='st-tag st-err';
-      toast('Token 无效或无权限，请重新配置','error');
-      hidePage();
-      openSettings();
+      $('stTag').textContent='请登录';$('stTag').className='st-tag st-err';
+      toast('登录已过期，请重新登录','error');hidePage();openLogin();
     }else{
-      $('stTag').textContent='加载失败';
-      $('stTag').className='st-tag st-err';
-      showPage();
-      $('phoneList').innerHTML='<div class="empty"><h3>加载失败</h3><p>'+esc(e.message)+'</p></div>';
+      $('stTag').textContent='加载失败';$('stTag').className='st-tag st-err';
+      showPage();$('phoneList').innerHTML='<div class="empty"><h3>加载失败</h3><p>'+esc(e.message)+'</p></div>';
     }
   }
 }
 
 async function saveData(action){
-  try{
-    SHA=await ghPut('phones.json',DATA,SHA,action);
-    render();
-    return true;
-  }catch(e){
+  try{SHA=await ghPut('phones.json',DATA,SHA,action);render();return true}
+  catch(e){
     if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){
-      configured=false;
-      $('stTag').textContent='Token 错误';
-      $('stTag').className='st-tag st-err';
-      toast('Token 已失效，请重新配置','error');
-      hidePage();
-      openSettings();
-    }else{
-      toast('保存失败：'+e.message,'error');
-    }
+      configured=false;$('stTag').textContent='请登录';$('stTag').className='st-tag st-err';
+      toast('登录已过期，请重新登录','error');hidePage();openLogin();
+    }else{toast('保存失败','error')}
     return false;
   }
 }
 
-// ============ CRUD ============
 async function addPhone(){
-  if(!cfg.token){openSettings();return;}
+  if(!cfg.token){openLogin();return}
   var phone=$('inpPhone').value.trim();
   var name=$('inpName').value.trim();
-  if(!phone){
-    toast('请输入电话号码','warn');
-    $('inpPhone').focus();
-    $('inpPhone').style.animation='shake .4s';
-    setTimeout(function(){$('inpPhone').style.animation=''},400);
-    return;
-  }
-  if(!DATA) DATA={phones:[]};
+  if(!phone){toast('请输入电话号码','warn');$('inpPhone').focus();$('inpPhone').style.animation='shake .4s';setTimeout(function(){$('inpPhone').style.animation=''},400);return}
+  if(!DATA)DATA={phones:[]};
   DATA.phones.push({id:uid(),phone:phone,name:name,created:new Date().toISOString()});
   var ok=await saveData('添加号码 '+fmt(phone));
-  if(ok){$('inpPhone').value='';$('inpName').value='';toast('添加成功','success');}
+  if(ok){$('inpPhone').value='';$('inpName').value='';toast('添加成功','success')}
 }
 
 var edId=null;
 function openEdit(id){
-  edId=id;
-  var it=DATA.phones.find(function(x){return x.id===id;});
-  if(!it)return;
-  $('edPhone').value=it.phone;
-  $('edName').value=it.name;
-  $('editModal').classList.add('show');
+  edId=id;var it=DATA.phones.find(function(x){return x.id===id});
+  if(!it)return;$('edPhone').value=it.phone;$('edName').value=it.name;$('editModal').classList.add('show');
 }
 async function saveEdit(){
-  var phone=$('edPhone').value.trim();
-  var name=$('edName').value.trim();
-  if(!phone){toast('电话号码不能为空','warn');return;}
-  var it=DATA.phones.find(function(x){return x.id===edId;});
-  if(it){it.phone=phone;it.name=name;}
+  var phone=$('edPhone').value.trim();var name=$('edName').value.trim();
+  if(!phone){toast('电话号码不能为空','warn');return}
+  var it=DATA.phones.find(function(x){return x.id===edId});
+  if(it){it.phone=phone;it.name=name}
   var ok=await saveData('修改号码 '+fmt(phone));
-  if(ok){closeM('editModal');toast('修改成功','success');}
+  if(ok){closeM('editModal');toast('修改成功','success')}
 }
 
 var delId=null;
 function openDel(id){
-  delId=id;
-  var it=DATA.phones.find(function(x){return x.id===id;});
-  if(!it)return;
-  $('delInfo').textContent=(it.name?it.name+' - ':'')+fmt(it.phone);
-  $('delModal').classList.add('show');
+  delId=id;var it=DATA.phones.find(function(x){return x.id===id});
+  if(!it)return;$('delInfo').textContent=(it.name?it.name+' - ':'')+fmt(it.phone);$('delModal').classList.add('show');
 }
 async function confirmDel(){
-  var it=DATA.phones.find(function(x){return x.id===delId;});
-  DATA.phones=DATA.phones.filter(function(x){return x.id!==delId;});
+  var it=DATA.phones.find(function(x){return x.id===delId});
+  DATA.phones=DATA.phones.filter(function(x){return x.id!==delId});
   var ok=await saveData('删除号码 '+(it?fmt(it.phone):''));
-  if(ok){closeM('delModal');toast('已删除','success');}
+  if(ok){closeM('delModal');toast('已删除','success')}
 }
 
-// ============ 二维码 ============
-function baseUrl(){
-  return 'https://'+cfg.owner+'.github.io/'+cfg.repo+'/call.html';
-}
+function baseUrl(){return 'https://'+cfg.owner+'.github.io/'+REPO_NAME+'/call.html'}
 
+// ========== 二维码 ==========
 function showQr(id){
-  var it=DATA.phones.find(function(x){return x.id===id;});
+  var it=DATA.phones.find(function(x){return x.id===id});
   if(!it)return;
   var url=baseUrl()+'?id='+id;
-  $('qrTitle').textContent=it.name||fmt(it.phone);
   $('qrUrl').textContent=url;
   var box=$('qrBox');box.innerHTML='';
-  new QRCode(box,{text:url,width:200,height:200,colorDark:'#13131a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  new QRCode(box,{text:url,width:220,height:220,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   $('qrModal').classList.add('show');
 }
 
-function dlQr(){
-  var c=$('qrBox canvas');
-  if(c){var a=document.createElement('a');a.download='qr-code.png';a.href=c.toDataURL('image/png');a.click();toast('二维码已保存','success');}
-  else{var i=$('qrBox img');if(i){var a=document.createElement('a');a.href=i.src;a.download='qr-code.png';a.click();}}
+// 下载整个打印卡为图片（canvas 合成）
+function dlQrCard(){
+  var canvas=document.createElement('canvas');
+  var W=720,H=1000;
+  canvas.width=W;canvas.height=H;
+  var ctx=canvas.getContext('2d');
+
+  // 黑色背景+圆角
+  roundRect(ctx,0,0,W,H,40,'#111111');
+
+  // 二维码
+  var qrCanvas=$('qrBox').querySelector('canvas');
+  if(!qrCanvas){toast('二维码未加载','error');return}
+
+  // 白色二维码容器
+  var qrW=440,qrH=440,qrX=(W-qrW)/2,qrY=64;
+  roundRect(ctx,qrX,qrY,qrW,qrH,28,'#ffffff');
+
+  // 二维码图片
+  var imgPad=28;
+  ctx.drawImage(qrCanvas,qrX+imgPad,qrY+imgPad,qrW-imgPad*2,qrH-imgPad*2);
+
+  // 中间汽车图标背景
+  var iconSize=80;
+  var iconX=(W-iconSize)/2,iconY=qrY+(qrH-iconSize)/2;
+  ctx.fillStyle='#111111';
+  ctx.beginPath();
+  ctx.moveTo(iconX+12,iconY);
+  ctx.lineTo(iconX+iconSize-12,iconY);
+  ctx.quadraticCurveTo(iconX+iconSize,iconY,iconX+iconSize,iconY+12);
+  ctx.lineTo(iconX+iconSize,iconY+iconSize-12);
+  ctx.quadraticCurveTo(iconX+iconSize,iconY+iconSize,iconX+iconSize-12,iconY+iconSize);
+  ctx.lineTo(iconX+12,iconY+iconSize);
+  ctx.quadraticCurveTo(iconX,iconY+iconSize,iconX,iconY+iconSize-12);
+  ctx.lineTo(iconX,iconY+12);
+  ctx.quadraticCurveTo(iconX,iconY,iconX+12,iconY);
+  ctx.fill();
+
+  // 白色描边
+  ctx.strokeStyle='#ffffff';
+  ctx.lineWidth=6;
+  ctx.beginPath();
+  ctx.moveTo(iconX+12,iconY);
+  ctx.lineTo(iconX+iconSize-12,iconY);
+  ctx.quadraticCurveTo(iconX+iconSize,iconY,iconX+iconSize,iconY+12);
+  ctx.lineTo(iconX+iconSize,iconY+iconSize-12);
+  ctx.quadraticCurveTo(iconX+iconSize,iconY+iconSize,iconX+iconSize-12,iconY+iconSize);
+  ctx.lineTo(iconX+12,iconY+iconSize);
+  ctx.quadraticCurveTo(iconX,iconY+iconSize,iconX,iconY+iconSize-12);
+  ctx.lineTo(iconX,iconY+12);
+  ctx.quadraticCurveTo(iconX,iconY,iconX+12,iconY);
+  ctx.stroke();
+
+  // 汽车图标 (简化绘制)
+  drawCarIcon(ctx,W/2,iconY+iconSize/2,22);
+
+  // "手机扫码"
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.font='600 36px "Noto Sans SC", sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('手机扫码',W/2,qrY+qrH+60);
+
+  // "呼叫车主"
+  ctx.fillStyle='#ffffff';
+  ctx.font='700 44px "Noto Sans SC", sans-serif';
+  ctx.fillText('呼叫车主',W/2,qrY+qrH+120);
+
+  // 分割线
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(60,qrY+qrH+160);
+  ctx.lineTo(W-60,qrY+qrH+160);
+  ctx.stroke();
+
+  // 红字 "临时停车，敬请谅解"
+  ctx.fillStyle='#ef4444';
+  ctx.font='700 34px "Noto Sans SC", sans-serif';
+  ctx.fillText('临时停车，敬请谅解',W/2,qrY+qrH+215);
+
+  // 下载
+  var a=document.createElement('a');
+  a.download='挪车二维码.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+  toast('图片已下载，可直接打印','success');
 }
 
-// ============ 渲染 ============
+function drawCarIcon(ctx,x,y,size){
+  ctx.save();
+  ctx.fillStyle='#22c55e';
+  ctx.strokeStyle='#22c55e';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  // 简化汽车轮廓
+  var s=size;
+  ctx.moveTo(x-s,y+s*0.3);
+  ctx.lineTo(x-s*0.7,y-s*0.5);
+  ctx.quadraticCurveTo(x-s*0.4,-s*0.9,x,y-s*0.8);
+  ctx.quadraticCurveTo(x+s*0.4,-s*0.9,x+s*0.7,y-s*0.5);
+  ctx.lineTo(x+s,y+s*0.3);
+  ctx.lineTo(x+s,y+s*0.5);
+  ctx.lineTo(x-s,y+s*0.5);
+  ctx.closePath();
+  ctx.fill();
+  // 车轮
+  ctx.fillStyle='#111';
+  ctx.beginPath();
+  ctx.arc(x-s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x+s*0.6,y+s*0.5,s*0.25,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function render(){
   var list=DATA?DATA.phones:[];
   $('listCnt').textContent=list.length+' 个';
@@ -513,18 +703,11 @@ function render(){
   $('phoneList').innerHTML=h;
 }
 
-// ============ 初始化 ============
 (function init(){
   hidePage();
-  if(cfg.token&&cfg.owner&&cfg.repo){
-    $('stTag').textContent='已配置';
-    $('stTag').className='st-tag st-ok';
-    loadData();
-  }else{
-    $('stTag').className='st-tag';
-    openSettings();
-  }
-  $('inpPhone').addEventListener('keydown',function(e){if(e.key==='Enter')addPhone();});
+  if(cfg.token&&cfg.owner){$('stTag').textContent='已连接';$('stTag').className='st-tag st-ok';loadData()}
+  else{$('stTag').className='st-tag';openLogin()}
+  $('inpPhone').addEventListener('keydown',function(e){if(e.key==='Enter')addPhone()});
 })();
 </script>
 </body>
