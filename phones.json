@@ -24,7 +24,8 @@
       "id": "mpv7z3ofbi7x",
       "phone": "1512345678",
       "name": "测试",
-      "created": "2026-06-01T13:03:35.007Z"
+      "created": "2026-06-01T13:03:35.007Z",
+      "icon": "icons/mpv7z3ofbi7x.png"
     }
   ]
 }
