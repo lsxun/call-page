@@ -218,6 +218,7 @@ var cfg=JSON.parse(localStorage.getItem('ghCfg')||'{}');
 var SHA=null,DATA=null,configured=false;
 var currentQrItem=null;
 var addImgData=null,edImgData=null,edImgChanged=false;
+var imgCache={};
 var PHONE_SVG='<svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>';
 
 function $(id){return document.getElementById(id)}
@@ -230,13 +231,18 @@ function b64Decode(s){try{return decodeURIComponent(atob(s).split('').map(functi
 function b64Encode(s){return btoa(encodeURIComponent(s).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}))}
 function hidePage(){$('addForm').style.display='none';$('listHead').style.display='none';$('searchBar').style.display='none';$('phoneList').style.display='none'}
 function showPage(){$('addForm').style.display='';$('listHead').style.display='';$('searchBar').style.display='';$('phoneList').style.display=''}
-function iconUrl(p){return p?'https://'+cfg.owner+'.github.io/'+REPO_NAME+'/'+p+'?t='+Date.now():null}
 function defaultIconUrl(){return 'https://'+cfg.owner+'.github.io/'+REPO_NAME+'/icons/default.png?t='+Date.now()}
 function apiUrl(p){return 'https://api.github.com/repos/'+cfg.owner+'/'+REPO_NAME+'/contents/'+p}
 function showOp(msg){$('opText').textContent=msg||'处理中...';$('opOverlay').classList.add('show')}
 function hideOp(){$('opOverlay').classList.remove('show')}
 function isRestrictedEnv(){return /MicroMessenger|QQ\/|iPhone|iPad|iPod/i.test(navigator.userAgent)}
 function onImgErr(el){el.style.display='none';if(!el.parentNode.querySelector('svg'))el.insertAdjacentHTML('afterend',PHONE_SVG)}
+
+// ===== 核心：iconUrl 优先读缓存 =====
+function iconUrl(p,id){
+  if(id&&imgCache[id])return imgCache[id];
+  return p?'https://'+cfg.owner+'.github.io/'+REPO_NAME+'/'+p+'?t='+Date.now():null;
+}
 
 function resizeImg(file,cb){var r=new FileReader();r.onload=function(e){var img=new Image();img.onload=function(){var c=document.createElement('canvas');var w=img.width,h=img.height,sz=Math.min(w,h);c.width=100;c.height=100;c.getContext('2d').drawImage(img,(w-sz)/2,(h-sz)/2,sz,sz,0,0,100,100);cb(c.toDataURL('image/png'))};img.src=e.target.result};r.readAsDataURL(file)}
 function setImgPreview(p,d){var u=$(p+'ImgUp'),i=$(p+'ImgPreview');if(d){i.src=d;u.classList.add('has')}else{i.src='';u.classList.remove('has')}}
@@ -254,105 +260,88 @@ async function doLogin(){var o=$('cfgOwner').value.trim(),t=$('cfgToken').value.
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&$('loginModal').classList.contains('show')){if(document.activeElement===$('cfgOwner'))$('cfgToken').focus();else if(document.activeElement===$('cfgToken'))doLogin()}});
 
 async function loadData(){hidePage();try{var r=await ghGet('phones.json');if(r){DATA=r.content;SHA=r.sha}else{DATA={phones:[]};SHA=null}configured=true;$('stTag').textContent='已连接';$('stTag').className='st-tag st-ok';showPage();render()}catch(e){configured=false;if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){$('stTag').textContent='请登录';$('stTag').className='st-tag st-err';toast('请重新登录','error');hidePage();openLogin()}else{$('stTag').textContent='加载失败';$('stTag').className='st-tag st-err';showPage();$('phoneList').innerHTML='<div class="empty"><h3>加载失败</h3><p>'+esc(e.message)+'</p></div>'}}}
-async function saveData(action){try{SHA=await ghPut('phones.json',DATA,SHA,action);render();return true}catch(e){if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){configured=false;$('stTag').textContent='请登录';$('stTag').className='st-tag st-err';toast('请重新登录','error');hidePage();openLogin()}else toast('保存失败','error');return false}}
 
-async function addPhone(){if(!cfg.token){openLogin();return}var p=$('inpPhone').value.trim(),n=$('inpName').value.trim();if(!p){toast('请输入电话号码','warn');$('inpPhone').focus();$('inpPhone').style.animation='shake .4s';setTimeout(function(){$('inpPhone').style.animation=''},400);return}showOp('添加号码中...');try{var id=uid();if(addImgData)await uploadIconFile('icons/'+id+'.png',addImgData,'上传车标 '+(n||p));if(!DATA)DATA={phones:[]};var item={id:id,phone:p,name:n,created:new Date().toISOString()};if(addImgData)item.icon='icons/'+id+'.png';DATA.phones.push(item);if(await saveData('添加号码 '+fmt(p))){$('inpPhone').value='';$('inpName').value='';addImgData=null;setImgPreview('add',null);toast('添加成功','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
+// ===== 保存（带重试） =====
+async function saveData(action){
+  try{SHA=await ghPut('phones.json',DATA,SHA,action);render();return true}
+  catch(e){
+    if(e.message==='TOKEN_INVALID'||e.message==='TOKEN_NO_permission'){configured=false;$('stTag').textContent='请登录';$('stTag').className='st-tag st-err';toast('请重新登录','error');hidePage();openLogin();return false}
+    try{var fresh=await ghGet('phones.json');if(fresh){if(JSON.stringify(fresh.content)===JSON.stringify(DATA)){SHA=fresh.sha;render();return true}SHA=fresh.sha;SHA=await ghPut('phones.json',DATA,SHA,action);render();return true}}catch(e2){}
+    toast('保存失败','error');return false;
+  }
+}
 
+// ===== 添加（写入缓存） =====
+async function addPhone(){if(!cfg.token){openLogin();return}var p=$('inpPhone').value.trim(),n=$('inpName').value.trim();if(!p){toast('请输入电话号码','warn');$('inpPhone').focus();$('inpPhone').style.animation='shake .4s';setTimeout(function(){$('inpPhone').style.animation=''},400);return}showOp('添加号码中...');try{var id=uid();if(addImgData)await uploadIconFile('icons/'+id+'.png',addImgData,'上传车标 '+(n||p));if(!DATA)DATA={phones:[]};var item={id:id,phone:p,name:n,created:new Date().toISOString()};if(addImgData){item.icon='icons/'+id+'.png';imgCache[id]=addImgData}DATA.phones.push(item);if(await saveData('添加号码 '+fmt(p))){$('inpPhone').value='';$('inpName').value='';addImgData=null;setImgPreview('add',null);toast('添加成功','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
+
+// ===== 编辑（写入缓存） =====
 var edId=null;
-function openEdit(id){edId=id;var it=DATA.phones.find(function(x){return x.id===id});if(!it)return;$('edPhone').value=it.phone;$('edName').value=it.name;edImgData=it.icon?iconUrl(it.icon):null;edImgChanged=false;setImgPreview('ed',edImgData);$('editModal').classList.add('show')}
-async function saveEdit(){var p=$('edPhone').value.trim(),n=$('edName').value.trim();if(!p){toast('号码不能为空','warn');return}var it=DATA.phones.find(function(x){return x.id===edId});if(!it)return;showOp('保存中...');try{if(edImgChanged){if(edImgData&&edImgData.startsWith('data:')){await uploadIconFile('icons/'+edId+'.png',edImgData,'更新车标');it.icon='icons/'+edId+'.png'}else{if(it.icon)await deleteIconFile(it.icon,'删除车标');delete it.icon}}it.phone=p;it.name=n;if(await saveData('修改号码 '+fmt(p))){closeM('editModal');toast('修改成功','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
+function openEdit(id){edId=id;var it=DATA.phones.find(function(x){return x.id===id});if(!it)return;$('edPhone').value=it.phone;$('edName').value=it.name;edImgData=it.icon?(imgCache[id]||iconUrl(it.icon)):null;edImgChanged=false;setImgPreview('ed',edImgData);$('editModal').classList.add('show')}
+async function saveEdit(){var p=$('edPhone').value.trim(),n=$('edName').value.trim();if(!p){toast('号码不能为空','warn');return}var it=DATA.phones.find(function(x){return x.id===edId});if(!it)return;showOp('保存中...');try{if(edImgChanged){if(edImgData&&edImgData.startsWith('data:')){await uploadIconFile('icons/'+edId+'.png',edImgData,'更新车标');it.icon='icons/'+edId+'.png';imgCache[edId]=edImgData}else{if(it.icon)await deleteIconFile(it.icon,'删除车标');delete it.icon;delete imgCache[edId]}}it.phone=p;it.name=n;if(await saveData('修改号码 '+fmt(p))){closeM('editModal');toast('修改成功','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
 
+// ===== 删除（清缓存） =====
 var delId=null;
 function openDel(id){delId=id;var it=DATA.phones.find(function(x){return x.id===id});if(!it)return;$('delInfo').textContent=(it.name?it.name+' - ':'')+fmt(it.phone);$('delModal').classList.add('show')}
-async function confirmDel(){var it=DATA.phones.find(function(x){return x.id===delId});showOp('删除中...');try{if(it&&it.icon)await deleteIconFile(it.icon,'删除车标');DATA.phones=DATA.phones.filter(function(x){return x.id!==delId});if(await saveData('删除号码 '+(it?fmt(it.phone):''))){closeM('delModal');toast('已删除','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
+async function confirmDel(){var it=DATA.phones.find(function(x){return x.id===delId});showOp('删除中...');try{if(it&&it.icon)await deleteIconFile(it.icon,'删除车标');if(delId)delete imgCache[delId];DATA.phones=DATA.phones.filter(function(x){return x.id!==delId});if(await saveData('删除号码 '+(it?fmt(it.phone):''))){closeM('delModal');toast('已删除','success')}}catch(e){toast('操作失败: '+e.message,'error')}finally{hideOp()}}
 
 function baseUrl(){return 'https://'+cfg.owner+'.github.io/'+REPO_NAME+'/call.html'}
 
+// ===== 二维码（优先缓存） =====
 function showQr(id){
   var it=DATA.phones.find(function(x){return x.id===id});if(!it)return;
-  currentQrItem=it;
-  var box=$('qrBox');box.innerHTML='';
+  currentQrItem=it;var box=$('qrBox');box.innerHTML='';
   new QRCode(box,{text:baseUrl()+'?id='+id,width:110,height:110,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   var el=$('qrDomIcon');el.innerHTML='';
-  var imgSrc=it.icon?iconUrl(it.icon):defaultIconUrl();
-  var img=document.createElement('img');img.src=imgSrc;
+  var src=imgCache[id]||(it.icon?iconUrl(it.icon):defaultIconUrl());
+  var img=document.createElement('img');img.src=src;
   img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:6px';
-  img.onerror=function(){
-    el.innerHTML='<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#22c55e"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>';
-  };
+  img.onerror=function(){el.innerHTML='<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#22c55e"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>'};
   el.appendChild(img);
   $('qrModal').classList.add('show');
 }
 
-function dlQrCard(){
-  var item=currentQrItem;
-  var src=(item&&item.icon)?iconUrl(item.icon):defaultIconUrl();
-  var img=new Image();img.crossOrigin='anonymous';
-  img.onload=function(){dlQrCardDraw(img)};
-  img.onerror=function(){dlQrCardDraw(null)};
-  img.src=src;
-}
-
+// ===== 下载（优先缓存） =====
+function dlQrCard(){var item=currentQrItem;var src=imgCache[item.id]||(item&&item.icon?iconUrl(item.icon):defaultIconUrl());var img=new Image();img.crossOrigin='anonymous';img.onload=function(){dlQrCardDraw(img)};img.onerror=function(){dlQrCardDraw(null)};img.src=src}
 function dlQrCardDraw(customImg){
-  var S=2,cw=420,pt=32,pr=28,pl=28;
-  var qrDraw=110,qrPad=10,textGap=8,fs=36,nPad=14;
+  var S=2,cw=420,pt=32,pr=28,pl=28,qrDraw=110,qrPad=10,textGap=8,fs=36,nPad=14;
   var qrOuter=(qrDraw+qrPad*2)*S,lineH=fs*1.3*S,textBlockH=lineH*2+textGap*S;
   var bodyH=Math.max(qrOuter,textBlockH),noticeH=fs*S;
-  var topPad=pt*S,bottomPad=pt*S;
-  var cW=cw*S,cH=topPad+bodyH+nPad*S+noticeH+bottomPad;
+  var topPad=pt*S,bottomPad=pt*S,cW=cw*S,cH=topPad+bodyH+nPad*S+noticeH+bottomPad;
   cH=Math.ceil(cH/2)*2;
   var canvas=document.createElement('canvas');canvas.width=cW;canvas.height=cH;
   var ctx=canvas.getContext('2d'),W=cW;
   var qrCanvas=$('qrBox').querySelector('canvas');
   if(!qrCanvas){toast('二维码未加载','error');return}
-
-  var leftEdge=pl*S,rightEdge=W-pr*S,bodyTop=topPad;
-  var qrX=leftEdge,qrY=bodyTop+(bodyH-qrOuter)/2;
-
+  var leftEdge=pl*S,rightEdge=W-pr*S,bodyTop=topPad,qrX=leftEdge,qrY=bodyTop+(bodyH-qrOuter)/2;
   ctx.fillStyle='#fff';drawRR(ctx,qrX,qrY,qrOuter,qrOuter,14*S);ctx.fill();
   ctx.drawImage(qrCanvas,qrX+qrPad*S,qrY+qrPad*S,qrDraw*S,qrDraw*S);
-
   var icS=30*S,icX=qrX+(qrOuter-icS)/2,icY=qrY+(qrOuter-icS)/2;
   ctx.fillStyle='#fff';drawRR(ctx,icX,icY,icS,icS,6*S);ctx.fill();
   ctx.save();drawRR(ctx,icX,icY,icS,icS,6*S);ctx.clip();
   if(customImg)ctx.drawImage(customImg,icX,icY,icS,icS);
   ctx.restore();
-
   var textStartY=bodyTop+(bodyH-textBlockH)/2;
   ctx.font='900 '+fs*S+'px "Noto Serif SC",serif';ctx.textAlign='right';ctx.textBaseline='middle';
-  ctx.shadowColor='rgba(0,0,0,0.35)';ctx.shadowBlur=10;ctx.shadowOffsetX=0;ctx.shadowOffsetY=3;
-  ctx.fillStyle='#ffffff';
+  ctx.shadowColor='rgba(0,0,0,0.35)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;ctx.fillStyle='#ffffff';
   ctx.fillText('手机扫码',rightEdge,textStartY+lineH/2);
   ctx.fillText('呼叫车主',rightEdge,textStartY+lineH+textGap*S+lineH/2);
-  ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
-
+  ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
   var noticeTop=bodyTop+bodyH+nPad*S,noticeY=noticeTop+noticeH/2;
   ctx.fillStyle='#ef4444';ctx.font='900 '+fs*S+'px "Noto Serif SC",serif';
   ctx.shadowColor='rgba(239,68,68,0.3)';ctx.shadowBlur=12;ctx.shadowOffsetY=2;
   var ntxt='临时停车，敬请谅解',chars=ntxt.split('');
   var cws=chars.map(function(c){return ctx.measureText(c).width});
   var tw=rightEdge-leftEdge,sb=chars.length>1?(tw-cws.reduce(function(a,b){return a+b},0))/(chars.length-1):0;
-  var cx=leftEdge;
-  for(var i=0;i<chars.length;i++){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(chars[i],cx,noticeY);cx+=cws[i]+sb}
+  var cx=leftEdge;for(var i=0;i<chars.length;i++){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(chars[i],cx,noticeY);cx+=cws[i]+sb}
   ctx.shadowColor='transparent';ctx.shadowBlur=0;
-
   var dataUrl=canvas.toDataURL('image/png');
   if(isRestrictedEnv()){showSaveOverlay(dataUrl);return}
   try{var a=document.createElement('a');a.download='挪车二维码.png';a.href=dataUrl;document.body.appendChild(a);a.click();document.body.removeChild(a);toast('图片已下载，可直接打印','success')}catch(e){showSaveOverlay(dataUrl)}
 }
-
-function showSaveOverlay(dataUrl){
-  var div=document.createElement('div');
-  div.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
-  div.innerHTML='<p style="color:rgba(255,255,255,.65);font-size:15px;margin-bottom:20px;text-align:center;letter-spacing:.05em">长按图片保存到相册</p>'
-    +'<img src="'+dataUrl+'" style="max-width:calc(100vw - 48px);max-height:65vh;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5)">'
-    +'<button style="margin-top:24px;padding:12px 40px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.05em">关闭</button>';
-  div.querySelector('button').onclick=function(){div.remove()};
-  document.body.appendChild(div);
-}
-
+function showSaveOverlay(dataUrl){var div=document.createElement('div');div.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';div.innerHTML='<p style="color:rgba(255,255,255,.65);font-size:15px;margin-bottom:20px;text-align:center;letter-spacing:.05em">长按图片保存到相册</p>'+'<img src="'+dataUrl+'" style="max-width:calc(100vw - 48px);max-height:65vh;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5)">'+'<button style="margin-top:24px;padding:12px 40px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.05em">关闭</button>';div.querySelector('button').onclick=function(){div.remove()};document.body.appendChild(div)}
 function drawRR(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
 
+// ===== 渲染（优先缓存） =====
 function render(){
   var list=DATA?DATA.phones:[];
   if(list.length>1)list=list.slice().sort(function(a,b){return(b.created||b.id||'').localeCompare(a.created||a.id||'')});
@@ -363,15 +352,8 @@ function render(){
   if(!filtered.length){$('phoneList').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>未找到匹配</h3><p>请尝试其他关键词</p></div>';return}
   var h='';filtered.forEach(function(it,i){
     var d=Math.min(i*.06,.4);
-    var imgSrc=it.icon?iconUrl(it.icon):defaultIconUrl();
-    h+='<div class="pc" style="animation-delay:'+d+'s">'
-      +'<div class="ci"><img src="'+imgSrc+'" onerror="onImgErr(this)"></div>'
-      +'<div class="cinf"><div class="cnm">'+esc(it.name||'-')+'</div><div class="cnum">'+esc(fmt(it.phone))+'</div></div>'
-      +'<div class="ca">'
-      +'<button class="bi bq" title="二维码" onclick="showQr(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></button>'
-      +'<button class="bi be" title="编辑" onclick="openEdit(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'
-      +'<button class="bi bd" title="删除" onclick="openDel(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
-      +'</div></div>';
+    var imgSrc=imgCache[it.id]||(it.icon?iconUrl(it.icon):defaultIconUrl());
+    h+='<div class="pc" style="animation-delay:'+d+'s"><div class="ci"><img src="'+imgSrc+'" onerror="onImgErr(this)"></div><div class="cinf"><div class="cnm">'+esc(it.name||'-')+'</div><div class="cnum">'+esc(fmt(it.phone))+'</div></div><div class="ca"><button class="bi bq" title="二维码" onclick="showQr(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></button><button class="bi be" title="编辑" onclick="openEdit(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button><button class="bi bd" title="删除" onclick="openDel(\''+it.id+'\')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div>';
   });$('phoneList').innerHTML=h;
 }
 
